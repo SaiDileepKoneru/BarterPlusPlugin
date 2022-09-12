@@ -1,0 +1,2 @@
+# MalmoServerPlugin
+ Server Plugin 
