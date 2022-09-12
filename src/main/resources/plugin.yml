@@ -1,0 +1,4 @@
+name: Malmo Server Plugin
+version: '${project.version}'
+main: crashcringle.malmoserverplugin.MalmoServerPlugin
+authors: [ Crash_Cringle ]
