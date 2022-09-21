@@ -61,6 +61,10 @@ public class MalmoTraderInteractEvent extends Event implements Cancellable {
         return handlers;
     }
 
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
+
     public static class MalmoTradingEvents implements Listener {
 
         @EventHandler(priority = EventPriority.HIGH)

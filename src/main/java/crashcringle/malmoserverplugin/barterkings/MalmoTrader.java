@@ -12,8 +12,9 @@ public class MalmoTrader {
     public MalmoTrader(Villager villager) {
         trader = villager;
         trader.setCustomName("Malmo Trader");
-        trader.setProfession(Villager.Profession.HUSK);
+        trader.setProfession(Villager.Profession.LIBRARIAN);
         trader.setGlowing(true);
+        BarterKings.traders.put(villager.getEntityId(), this);
     }
 
     public LivingEntity getLivingEntity() {
