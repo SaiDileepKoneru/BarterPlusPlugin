@@ -2,17 +2,11 @@ package crashcringle.malmoserverplugin;
 
 import crashcringle.malmoserverplugin.api.MalmoTraderInteractEvent;
 import crashcringle.malmoserverplugin.barterkings.BarterKings;
-import crashcringle.malmoserverplugin.barterkings.MalmoTrader;
-import org.bukkit.Material;
-import org.bukkit.entity.EntityType;
+import crashcringle.malmoserverplugin.barterkings.villagers.MalmoTrader;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.MerchantInventory;
 
 import java.util.logging.Level;
 public class MalmoServerListener implements Listener {

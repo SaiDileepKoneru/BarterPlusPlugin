@@ -1,7 +1,7 @@
 package crashcringle.malmoserverplugin.api;
 
 import crashcringle.malmoserverplugin.barterkings.BarterKings;
-import crashcringle.malmoserverplugin.barterkings.MalmoTrader;
+import crashcringle.malmoserverplugin.barterkings.villagers.MalmoTrader;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.*;

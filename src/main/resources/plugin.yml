@@ -1,4 +1,13 @@
-name: Malmo Server Plugin
+name: MalmoServerPlugin
 version: '${project.version}'
 main: crashcringle.malmoserverplugin.MalmoServerPlugin
 authors: [ Crash_Cringle ]
+description: Malmo Server Plugin
+api-version: 1.19
+depend:
+  - Citizens
+commands:
+  barter:
+    description: Trade with a player
+    usage: /barter trade <player>
+    permission: malmoserverplugin.trade

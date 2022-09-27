@@ -1,11 +1,10 @@
-package crashcringle.malmoserverplugin.barterkings;
+package crashcringle.malmoserverplugin.barterkings.villagers;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
-import org.bukkit.NamespacedKey;
+import crashcringle.malmoserverplugin.barterkings.BarterKings;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.Merchant;
 import org.bukkit.inventory.MerchantRecipe;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

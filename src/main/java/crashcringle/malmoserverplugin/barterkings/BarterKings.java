@@ -1,6 +1,7 @@
 package crashcringle.malmoserverplugin.barterkings;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
+import crashcringle.malmoserverplugin.barterkings.villagers.MalmoTrader;
 
 import java.util.HashMap;
 import java.util.Map;

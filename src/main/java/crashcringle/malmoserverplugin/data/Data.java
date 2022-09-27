@@ -9,7 +9,7 @@ import java.util.zip.GZIPOutputStream;
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
 import crashcringle.malmoserverplugin.barterkings.BarterKings;
 
-import crashcringle.malmoserverplugin.barterkings.MalmoTrader;
+import crashcringle.malmoserverplugin.barterkings.villagers.MalmoTrader;
 import org.bukkit.Bukkit;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;

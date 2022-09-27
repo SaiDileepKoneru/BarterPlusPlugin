@@ -1,4 +1,4 @@
-package crashcringle.malmoserverplugin.barterkings;
+package crashcringle.malmoserverplugin.barterkings.villagers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;

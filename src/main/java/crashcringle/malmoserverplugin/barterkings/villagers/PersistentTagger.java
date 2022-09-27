@@ -1,9 +1,9 @@
-package crashcringle.malmoserverplugin.barterkings;
+package crashcringle.malmoserverplugin.barterkings.villagers;
 
+import crashcringle.malmoserverplugin.barterkings.BarterKings;
 import lombok.Getter;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Projectile;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
