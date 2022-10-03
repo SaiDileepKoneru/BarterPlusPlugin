@@ -3,6 +3,8 @@ package crashcringle.malmoserverplugin.commands;
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
 import crashcringle.malmoserverplugin.barterkings.players.Trade;
 import crashcringle.malmoserverplugin.barterkings.players.TradeController;
+import crashcringle.malmoserverplugin.barterkings.players.TradeRequest;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -37,15 +39,21 @@ public class CommandTrade implements CommandExecutor {
         if (cmd.getName().equalsIgnoreCase("barter")) {
             if (args.length == 0) {
                 if (sender.hasPermission("malmoserverplugin.trade")) {
-                    sender.sendMessage("This is the help message");
+                    sender.sendMessage("Correct format is: /barter trade [player] [Offereditem] [amount] [requestedItem] [amount]");
                 }
                 return true;    // Return true because the command was executed successfully
             } else {
                 if (args[0].equalsIgnoreCase("help")) {
-                    if (sender.hasPermission("malmoserverplugin.trade")) {
-                        sender.sendMessage("This is the help message");
+                    if (sender.hasPermission("malmoserverplugin.help")) {
+                        sender.sendMessage(ChatColor.GRAY + "Commands:");
+                        sender.sendMessage(ChatColor.GREEN + "/barter trade <player> <offeredItem> <amount> <requestedItem> <amount> - Request a trade with a player");
+                        sender.sendMessage(ChatColor.GREEN + "/barter accept [player] - Accept a trade request from a player");
+                        sender.sendMessage(ChatColor.GREEN + "/barter deny [player] - Deny a trade request from a player");
+                        sender.sendMessage(ChatColor.GREEN + "/barter cancel [player] - Cancel a trade request to a player");
+                        sender.sendMessage(ChatColor.GREEN + "/barter openTrade <player> - Opens an insecure trade with a player");
+                        sender.sendMessage(ChatColor.GREEN + "/help - Display this help message");
                     }
-                    return true;
+                    return true;    // Return true because the command was executed successfully
                 } else if (args[0].equalsIgnoreCase("openTrade")) {
                     if (sender.hasPermission("malmoserverplugin.openTrade")) {
                         if (sender instanceof Player) {
@@ -54,14 +62,19 @@ public class CommandTrade implements CommandExecutor {
                                 Player target = Bukkit.getPlayer(args[1]);
                                 if (target != null) {
                                     if (target.isOnline()) {
-                                        if (target != player) {
-                                            MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " is trading with " + target.getName());
-                                            player.openInventory(target.getInventory());
-                                            target.openInventory(player.getInventory());
-                                            player.sendMessage(ChatColor.GREEN + "You are now trading with " + target.getName());
-                                            target.sendMessage(ChatColor.GREEN + player.getName() + " is now trading with you");
+                                        if (player.getNearbyEntities(5,5,5).contains(target)) {
+                                            if (target != player) {
+                                                MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " is trading with " + target.getName());
+                                                player.openInventory(target.getInventory());
+                                                target.openInventory(player.getInventory());
+                                                player.sendMessage(ChatColor.GREEN + "You are now trading with " + target.getName());
+                                                target.sendMessage(ChatColor.GREEN + player.getName() + " is now trading with you");
+                                            } else {
+                                                player.sendMessage(ChatColor.RED + "You cannot trade with yourself");
+                                            }
                                         } else {
-                                            player.sendMessage(ChatColor.RED + "You cannot trade with yourself");
+                                            player.sendMessage(ChatColor.RED + "The player you are trying to trade with is not nearby");
+                                            return true;
                                         }
                                     } else {
                                         player.sendMessage(ChatColor.RED + "That player is not online");
@@ -86,10 +99,15 @@ public class CommandTrade implements CommandExecutor {
                                     if (requested != sender) {
                                         if (sender instanceof Player) {
                                             Player requester = (Player) sender;
-                                            if (requester.getInventory().containsAtLeast(new ItemStack(Material.getMaterial(args[2])), Integer.parseInt(args[3]))) {
-                                                TradeController.sendTradeRequest(requester, requested, new Trade(new ItemStack(Material.getMaterial(args[2])), Integer.parseInt(args[3]), new ItemStack(Material.getMaterial(args[4])), Integer.parseInt(args[5])));
-                                            } else {
-                                                requester.sendMessage(ChatColor.RED + "You do not have enough of that item to trade");
+                                            try {
+                                                if (requester.getInventory().containsAtLeast(new ItemStack(Material.getMaterial(args[2].toUpperCase())), Integer.parseInt(args[3]))) {
+                                                    TradeController.sendTradeRequest(requester, requested, new Trade(new ItemStack(Material.getMaterial(args[2].toUpperCase())), Integer.parseInt(args[3]), new ItemStack(Material.getMaterial(args[4].toUpperCase())), Integer.parseInt(args[5])));
+                                                } else {
+                                                    requester.sendMessage(ChatColor.RED + "You do not have enough of that item to trade");
+                                                }
+                                            } catch (IllegalArgumentException e) {
+                                                requester.sendMessage(ChatColor.DARK_RED + " Invalid Item");
+                                                return false;
                                             }
 
                                         }
@@ -102,7 +120,7 @@ public class CommandTrade implements CommandExecutor {
 
                     }
                     return true;
-                } else if (args[0].equalsIgnoreCase("denyTrade")) {
+                } else if (args[0].equalsIgnoreCase("deny")) {
                     if (sender.hasPermission("malmoserverplugin.trade.deny")) {
                         if (args.length == 2) {
                             Player requester = Bukkit.getPlayer(args[1]);
@@ -125,12 +143,70 @@ public class CommandTrade implements CommandExecutor {
 
                     }
                     return true;
-                } else if (args[0].equalsIgnoreCase("acceptTrade")) {
+                } else if (args[0].equalsIgnoreCase("accept")) {
 
-
+                    if (sender.hasPermission("malmoserverplugin.trade.accept")) {
+                        if (args.length == 2) {
+                            Player requester = Bukkit.getPlayer(args[1]);
+                            if (requester != null) {
+                                if (requester.isOnline()) {
+                                    if (requester != sender) {
+                                        if (sender instanceof Player) {
+                                            Player requested = (Player) sender;
+                                            TradeController.acceptTrade(requested, requester);
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            if (sender instanceof Player) {
+                                TradeController.acceptRecentTrade((Player) sender);
+                            }
+                        }
+                    }
+                    return true;
+                 } else if (args[0].equalsIgnoreCase("cancel")) {
+                    if (sender.hasPermission("malmoserverplugin.trade.cancel")) {
+                        if (args.length == 2) {
+                            Player requested = Bukkit.getPlayer(args[1]);
+                            if (requested != null) {
+                                if (requested.isOnline()) {
+                                    if (requested != sender) {
+                                        if (sender instanceof Player) {
+                                            Player requester = (Player) sender;
+                                            TradeController.cancelTrade(requester, requested);
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            if (sender instanceof Player) {
+                                TradeController.cancelRecentTrade((Player) sender);
+                            }
+                        }
+                    }
+                    return true;
+                } else if (args[0].equalsIgnoreCase("list")) {
+                    if (sender.hasPermission("malmoserverplugin.trade.list")) {
+                        if (sender instanceof Player) {
+                            Player player = (Player) sender;
+                            List<TradeRequest> trades = TradeController.getAllPlayerTradeRequests(player);
+                            if (trades.size() > 0) {
+                                player.sendMessage(ChatColor.BLUE + "Trades:");
+                                for (TradeRequest traderequest : trades) {
+                                    player.sendMessage(ChatColor.BLUE+ traderequest.toString());
+                                }
+                            } else {
+                                player.sendMessage(ChatColor.RED + "You have no trades");
+                            }
+                        }
+                    }
+                    return true;
                 }
-
-
+            else {
+                    sender.sendMessage(ChatColor.RED + "Invalid command");
+                    return false;
+                }
             }
         }
 

@@ -1,5 +1,6 @@
 package crashcringle.malmoserverplugin.barterkings.players;
 
+import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 
 public class Trade {
@@ -9,11 +10,11 @@ public class Trade {
     private ItemStack offeredItem;
     private int offeredAmount;
 
-    public Trade(ItemStack requestedItem, int requestedAmount, ItemStack offeredItem, int offeredAmount) {
-        this.requestedItem = requestedItem;
-        this.requestedAmount = requestedAmount;
+    public Trade(ItemStack offeredItem, int offeredAmount, ItemStack requestedItem, int requestedAmount) {
         this.offeredItem = offeredItem;
         this.offeredAmount = offeredAmount;
+        this.requestedItem = requestedItem;
+        this.requestedAmount = requestedAmount;
     }
 
     public ItemStack getRequestedItem() {
@@ -48,12 +49,21 @@ public class Trade {
         this.offeredAmount = offeredAmount;
     }
 
-    public String getRequestedString() {
-        return requestedAmount + " " + requestedItem.getType().toString().toLowerCase() + " for " + offeredAmount + " " + offeredItem.getType().toString().toLowerCase();
+    /**
+     * Returns a string representation of the trade
+     * @return
+     */
+    public String getOfferString() {
+        return requestedAmount + " " + ChatColor.YELLOW + requestedItem.getType().toString() + ChatColor.GREEN + " for " + offeredAmount + " " + offeredItem.getType().toString();
     }
 
-    public String getOfferString() {
-        return offeredAmount + " " + offeredItem.getType().toString().toLowerCase() + " for " + requestedAmount + " " + requestedItem.getType().toString().toLowerCase();
+    /**
+     * Returns the trade as a string
+     * OfferedItem:OfferedAmount:RequestedItem:RequestedAmount
+     * @return
+     */
+    public String getOfferedString() {
+        return offeredAmount + " " + ChatColor.YELLOW + offeredItem.getType().toString() + ChatColor.GREEN + " for " + requestedAmount + " " + requestedItem.getType().toString();
     }
 
 
