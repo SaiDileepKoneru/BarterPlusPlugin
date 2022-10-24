@@ -1,18 +1,21 @@
-package crashcringle.malmoserverplugin.barterkings.players;
+package crashcringle.malmoserverplugin.barterkings.trades;
 
-import crashcringle.malmoserverplugin.MalmoServerPlugin;
-import net.md_5.bungee.chat.SelectorComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.logging.Level;
 
 public class TradeController {
     public static Map<Player, ArrayList<TradeRequest>> outgoingRequests;
     public static Map<Player, ArrayList<TradeRequest>> incomingRequests;
 
     public static ArrayList<Map<Player, TradeRequest>> staleRequests;
+    public enum RequestStatus {
+        PENDING,
+        ACCEPTED,
+        DECLINED,
+        CANCELLED
+    };
     public TradeController() {
         outgoingRequests = new HashMap<>();
         incomingRequests = new HashMap<>();
@@ -64,7 +67,6 @@ public class TradeController {
     public static void declineTradeRequest(TradeRequest tradeRequest) {
         if (!tradeRequest.isCompleted()) {
             tradeRequest.setAccepted(false);
-            tradeRequest.setCompleted(true);
             tradeRequest.getRequested().sendMessage(ChatColor.DARK_RED + "You have declined the trade request from " + tradeRequest.getRequester().getName());
             tradeRequest.getRequester().sendMessage(ChatColor.DARK_RED + "Your trade request has been declined by " + tradeRequest.getRequested().getName());
         } else {
@@ -112,11 +114,11 @@ public class TradeController {
 
     public static void cancelTradeRequest(TradeRequest tradeRequest) {
         if (!tradeRequest.isCompleted()) {
-            tradeRequest.setCompleted(true);
+            tradeRequest.setCancelled(true);
             tradeRequest.getRequester().sendMessage(ChatColor.DARK_RED + "You have cancelled the trade request to " + tradeRequest.getRequested().getName());
             tradeRequest.getRequested().sendMessage(ChatColor.DARK_RED + "Your trade request has been cancelled by " + tradeRequest.getRequester().getName());
        } else {
-            tradeRequest.getRequester().sendMessage(ChatColor.GOLD + "You have already accepted or declined this trade request");
+            tradeRequest.getRequester().sendMessage(ChatColor.GOLD + "You have already completed or cancelled this trade request");
         }
     }
 

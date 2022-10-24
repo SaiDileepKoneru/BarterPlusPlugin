@@ -1,9 +1,9 @@
 package crashcringle.malmoserverplugin.commands;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
-import crashcringle.malmoserverplugin.barterkings.players.Trade;
-import crashcringle.malmoserverplugin.barterkings.players.TradeController;
-import crashcringle.malmoserverplugin.barterkings.players.TradeRequest;
+import crashcringle.malmoserverplugin.barterkings.trades.Trade;
+import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
+import crashcringle.malmoserverplugin.barterkings.trades.TradeRequest;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -13,7 +13,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.logging.Level;
@@ -35,12 +34,16 @@ public class CommandTrade implements CommandExecutor {
      */
     @Override
     public boolean onCommand( CommandSender sender,  Command cmd,  String label,  String[] args) {
-        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "CommandTrade.onCommand() called");
         if (cmd.getName().equalsIgnoreCase("barter")) {
             if (args.length == 0) {
-                if (sender.hasPermission("malmoserverplugin.trade")) {
-                    sender.sendMessage("Correct format is: /barter trade [player] [Offereditem] [amount] [requestedItem] [amount]");
-                }
+                if (sender.hasPermission("malmoserverplugin.help")) {
+                    sender.sendMessage(ChatColor.GRAY + "Commands:");
+                    sender.sendMessage(ChatColor.GREEN + "/barter trade <player> <offeredItem> <amount> <requestedItem> <amount> - Request a trade with a player");
+                    sender.sendMessage(ChatColor.GREEN + "/barter accept [player] - Accept a trade request from a player");
+                    sender.sendMessage(ChatColor.GREEN + "/barter deny [player] - Deny a trade request from a player");
+                    sender.sendMessage(ChatColor.GREEN + "/barter cancel [player] - Cancel a trade request to a player");
+                    sender.sendMessage(ChatColor.GREEN + "/barter openTrade <player> - Opens an insecure trade with a player");
+                    sender.sendMessage(ChatColor.GREEN + "/help - Display this help message");                }
                 return true;    // Return true because the command was executed successfully
             } else {
                 if (args[0].equalsIgnoreCase("help")) {
