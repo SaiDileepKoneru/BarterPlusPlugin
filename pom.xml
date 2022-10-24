@@ -6,7 +6,7 @@
 
     <groupId>crashcringle</groupId>
     <artifactId>malmo-server-plugin</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.6</version>
     <packaging>jar</packaging>
 
     <name>Malmo Server Plugin</name>

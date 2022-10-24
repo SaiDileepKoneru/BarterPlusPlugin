@@ -1,4 +1,4 @@
-package crashcringle.malmoserverplugin.barterkings.players;
+package crashcringle.malmoserverplugin.barterkings.trades;
 
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
