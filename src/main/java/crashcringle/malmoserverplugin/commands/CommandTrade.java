@@ -153,6 +153,7 @@ public class CommandTrade implements CommandExecutor {
                     return true;
                 } else if (args[0].equalsIgnoreCase("trade")) {
                     if (sender.hasPermission("malmoserverplugin.trade.request")) {
+                        // Trade where only the item requested is specified. The item offered is the item in the player's hand
                         if (args.length == 4) {
                             Player requested = Bukkit.getPlayer(args[1]);
                             if (requested != null) {
