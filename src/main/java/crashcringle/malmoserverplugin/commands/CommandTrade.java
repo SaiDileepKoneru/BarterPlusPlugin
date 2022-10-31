@@ -44,7 +44,13 @@ public class CommandTrade implements CommandExecutor {
                     sender.sendMessage(ChatColor.GREEN + "/barter deny [player] - Deny a trade request from a player");
                     sender.sendMessage(ChatColor.GREEN + "/barter cancel [player] - Cancel a trade request to a player");
                     sender.sendMessage(ChatColor.GREEN + "/barter openTrade <player> - Opens an insecure trade with a player");
-                    sender.sendMessage(ChatColor.GREEN + "/help - Display this help message");                }
+                    sender.sendMessage(ChatColor.GREEN + "/help - Display this help message");
+                    sender.sendMessage(ChatColor.GREEN + "/barter readyUp - Ready up for the game");
+                    sender.sendMessage(ChatColor.GREEN + "/barter unready - Unready for the game");
+                    sender.sendMessage(ChatColor.GREEN + "/barter start - Start the game");
+                    sender.sendMessage(ChatColor.GREEN + "/barter join - Join the game");
+                    sender.sendMessage(ChatColor.GREEN + "/barter leave - Leave the game");
+                }
                 return true;    // Return true because the command was executed successfully
             } else {
                 if (args[0].equalsIgnoreCase("readyUp")) {
@@ -87,6 +93,25 @@ public class CommandTrade implements CommandExecutor {
                                 }
                             } else {
                                 sender.sendMessage(ChatColor.RED + "You are already a participant");
+                                return false;
+                            }
+                        }
+                    }
+                } else if (args[0].equalsIgnoreCase("leave")) {
+                    if (sender.hasPermission("malmoserverplugin.leave")) {
+                        if (sender instanceof Player) {
+                            Player player = (Player) sender;
+                            if (MalmoServerPlugin.barterGame.isParticipant(player)) {
+                                if (args.length == 1) {
+                                    MalmoServerPlugin.barterGame.removeParticipant(player);
+                                    sender.sendMessage(ChatColor.GREEN + "You are no longer participant");
+                                    return true;
+                                } else {
+                                    sender.sendMessage(ChatColor.RED + "Usage: /barter leave");
+                                    return false;
+                                }
+                            } else {
+                                sender.sendMessage(ChatColor.RED + "You were never a participant");
                                 return false;
                             }
                         }

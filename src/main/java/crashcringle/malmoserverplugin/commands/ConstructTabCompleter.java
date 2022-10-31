@@ -28,7 +28,16 @@ public class ConstructTabCompleter implements TabCompleter {
                 list.add("openTrade");
                 list.add("deny");
                 list.add("accept");
-                return list;
+                list.add("readyUp");
+                list.add("unready");
+                list.add("join");
+                list.add("leave");
+                list.add("start");
+                final List<String> completions = new ArrayList<>();
+                StringUtil.copyPartialMatches(args[0], list, completions);
+                //copy matches of first argument from list (if first arg is 'm' will return just 'minecraft')
+                Collections.sort(completions);
+                return completions;
             }
             else if (args.length >= 2) {
                 if (args[0].equalsIgnoreCase("openTrade")) {

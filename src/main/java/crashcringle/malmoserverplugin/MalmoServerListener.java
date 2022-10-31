@@ -38,7 +38,7 @@ public class MalmoServerListener implements Listener {
 
     @EventHandler
     public void broadcastTrade (AsyncPlayerChatEvent event) {
-        if (event.getMessage().contains("trade") || event.getMessage().contains("Trade")) {
+        if (event.getMessage().contains("want to trade") || event.getMessage().contains("trade with me?") || event.getMessage().contains("trade?")) {
             event.setCancelled(true);
             TextComponent message = new TextComponent(event.getPlayer().getDisplayName() + " wants to trade!");
             message.setColor(ChatColor.AQUA);

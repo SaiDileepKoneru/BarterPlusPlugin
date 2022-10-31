@@ -3,9 +3,14 @@ package crashcringle.malmoserverplugin.barterkings.players;
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +43,8 @@ public class PlayerHandler {
             setUpParticipants();
             findAllActiveTierItems();
             distributeItems();
+            teleportPlayers();
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt begin 45m barterKings white &6&lBarter Kings! &e&l<minutes> &6minutes and &e&l<seconds> &6seconds left!");
         } else {
             Bukkit.broadcastMessage(ChatColor.YELLOW + "Not all players are ready!");
         }
@@ -47,6 +54,51 @@ public class PlayerHandler {
         participants = new ArrayList<>();
 
     }
+    public final static String fm( Material material ) {
+        if ( material == null ) {
+            return null;
+        }
+        StringBuilder friendlyName = new StringBuilder();
+        for ( String word : material.name().split( "_" ) ) {
+            friendlyName.append( word.substring( 0, 1 ).toUpperCase() + word.substring( 1 ).toLowerCase() + " " );
+        }
+        return friendlyName.toString().trim();
+    }
+
+
+    public Scoreboard createScoreboard(Profession profession) {
+        Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        Objective objective = scoreboard.registerNewObjective("Trading Goals", "dummy");
+
+        objective.setDisplayName(ChatColor.GOLD + "Role: " + ChatColor.YELLOW + profession.getName());
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        Score score1 = objective.getScore(ChatColor.GOLD + "Trading Goals + Amounts in World!");
+        score1.setScore(0);
+        Score score2 = objective.getScore(ChatColor.GOLD + "Collect them all!");
+
+        for (ItemStack item : profession.getTier1Items()) {
+            Score score = objective.getScore(ChatColor.GREEN + fm(item.getType()) + " " + ChatColor.YELLOW + "x20" );
+            score.setScore(0);
+
+        }
+        for (ItemStack item : profession.getTier2Items()) {
+            Score score = objective.getScore(ChatColor.DARK_GREEN + fm(item.getType()) + " " + ChatColor.YELLOW + "x10" );
+            score.setScore(0);
+        }
+        for (ItemStack item : profession.getTier3Items()) {
+            Score score = objective.getScore(ChatColor.AQUA + fm(item.getType()) + " " + ChatColor.YELLOW + "x3" );
+            score.setScore(0);
+        }
+        return scoreboard;
+    }
+    public void teleportPlayers() {
+        for (Participant participant : participants) {
+            participant.getPlayer().setScoreboard(createScoreboard(participant.getProfession()));
+            participant.getPlayer().teleport(new Location(Bukkit.getWorld("world"), -704 + Math.random()+5, 73, 71 + Math.random()+5));
+        }
+    }
+
+
 
     public void addParticipant(Player player) {
         getParticipants().add(new Participant(player));
@@ -89,6 +141,7 @@ public class PlayerHandler {
             }
         }
         player.sendMessage(ChatColor.RED + "You are not a participant!");
+
     }
 
     public  void unready(Player player) {
@@ -147,6 +200,7 @@ public class PlayerHandler {
             while (amt > 0) {
                 int amtToGive = amt >= 2 ? ((int) (Math.random() * amt)) : 1;
                 randomIndex =  (int) (Math.random() * getParticipants().size());
+                item.setAmount(amtToGive);
                 getParticipants().get(randomIndex).getPlayer().getInventory().addItem(item);
                 MalmoServerPlugin.inst().getLogger().info("Tier 1 | Giving " + getParticipants().get(randomIndex).getPlayer().getName() + " " + amtToGive + " " + item.getType());
                 amt = amt - amtToGive;
@@ -161,6 +215,7 @@ public class PlayerHandler {
             while (amt > 0) {
                 int amtToGive = amt >= 2 ? ((int) (Math.random() * amt)) : 1;
                 randomIndex =  (int) (Math.random() * getParticipants().size());
+                item.setAmount(amtToGive);
                 getParticipants().get(randomIndex).getPlayer().getInventory().addItem(item);
                 MalmoServerPlugin.inst().getLogger().info("Tier 2 | Giving " + getParticipants().get(randomIndex).getPlayer().getName() + " " + amtToGive + " " + item.getType());
                 amt = amt - amtToGive;
@@ -228,7 +283,7 @@ public class PlayerHandler {
 
         List<ItemStack> tier2Butcher = new ArrayList<>();
         tier2Butcher.add(new ItemStack(Material.COOKED_BEEF));
-        tier2Butcher.add(new ItemStack(Material.COOKED_CHICKEN));
+        //tier2Butcher.add(new ItemStack(Material.COOKED_CHICKEN));
         tier2Butcher.add(new ItemStack(Material.COOKED_PORKCHOP));
 
         List<ItemStack> tier3Butcher = new ArrayList<>();
@@ -243,7 +298,7 @@ public class PlayerHandler {
 
         List<ItemStack> tier2Blacksmith = new ArrayList<>();
         tier2Blacksmith.add(new ItemStack(Material.IRON_SWORD));
-        tier2Blacksmith.add(new ItemStack(Material.GOLDEN_SWORD));
+        tier2Blacksmith.add(new ItemStack(Material.GOLDEN_PICKAXE));
 
         List<ItemStack> tier3Blacksmith = new ArrayList<>();
         tier3Blacksmith.add(new ItemStack(Material.DIAMOND_SWORD));
@@ -252,14 +307,14 @@ public class PlayerHandler {
 
         List<ItemStack> tier1Leatherworker = new ArrayList<>();
         tier1Leatherworker.add(new ItemStack(Material.LEATHER));
-        tier1Leatherworker.add(new ItemStack(Material.RABBIT_HIDE));
         tier1Leatherworker.add(new ItemStack(Material.LEATHER_CHESTPLATE));
         tier1Leatherworker.add(new ItemStack(Material.LEATHER_BOOTS));
-        tier1Leatherworker.add(new ItemStack(Material.LEATHER_LEGGINGS));
-        tier1Leatherworker.add(new ItemStack(Material.LEATHER_HELMET));
+        //tier1Leatherworker.add(new ItemStack(Material.LEATHER_LEGGINGS));
+        //tier1Leatherworker.add(new ItemStack(Material.LEATHER_HELMET));
 
         List<ItemStack> tier2Leatherworker = new ArrayList<>();
         tier2Leatherworker.add(new ItemStack(Material.SADDLE));
+        tier2Leatherworker.add(new ItemStack(Material.RABBIT_HIDE));
 
         List<ItemStack> tier3Leatherworker = new ArrayList<>();
         tier3Leatherworker.add(new ItemStack(Material.LEATHER_HORSE_ARMOR));
@@ -272,10 +327,10 @@ public class PlayerHandler {
         tier1Mason.add(new ItemStack(Material.GLASS));
 
         List<ItemStack> tier2Mason = new ArrayList<>();
-        tier2Mason.add(new ItemStack(Material.GREEN_GLAZED_TERRACOTTA));
+        //tier2Mason.add(new ItemStack(Material.GREEN_GLAZED_TERRACOTTA));
         tier2Mason.add(new ItemStack(Material.RED_GLAZED_TERRACOTTA));
         tier2Mason.add(new ItemStack(Material.BLUE_GLAZED_TERRACOTTA));
-        tier2Mason.add(new ItemStack(Material.WHITE_GLAZED_TERRACOTTA));
+        //tier2Mason.add(new ItemStack(Material.WHITE_GLAZED_TERRACOTTA));
 
         List<ItemStack> tier3Mason = new ArrayList<>();
         tier3Mason.add(new ItemStack(Material.QUARTZ));
@@ -285,10 +340,11 @@ public class PlayerHandler {
         List<ItemStack> tier1Shepherd = new ArrayList<>();
         tier1Shepherd.add(new ItemStack(Material.STRING));
         tier1Shepherd.add(new ItemStack(Material.WHITE_WOOL));
-        tier1Shepherd.add(new ItemStack(Material.WHITE_DYE));
+        tier1Shepherd.add(new ItemStack(Material.BLUE_DYE));
 
         List<ItemStack> tier2Shepherd = new ArrayList<>();
         tier2Shepherd.add(new ItemStack(Material.SHEARS));
+        tier2Shepherd.add(new ItemStack(Material.LOOM));
 
         List<ItemStack> tier3Shepherd = new ArrayList<>();
         tier3Shepherd.add(new ItemStack(Material.SHEEP_SPAWN_EGG));
@@ -296,9 +352,14 @@ public class PlayerHandler {
         setShepherd(new Profession("Shepherd", tier1Shepherd, tier2Shepherd, tier3Shepherd));
 
     }
-
+    List<Integer> used = new ArrayList<>();
     public Profession getRandomProfession() {
-        int random = new Random().nextInt(6);
+        int random = (int) (Math.random() * 7);
+        if (used.contains(random)) {
+            return getRandomProfession();
+        } else {
+            used.add(random);
+        }
         switch (random) {
             case 0:
                 return getFarmer();

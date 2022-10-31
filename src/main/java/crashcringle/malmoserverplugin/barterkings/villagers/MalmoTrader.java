@@ -17,7 +17,7 @@ public class MalmoTrader implements Merchant {
     public MalmoTrader(Villager villager) {
         mTrader = villager;
         mTrader.setCustomName("Malmo Trader");
-        mTrader.setProfession(Villager.Profession.LIBRARIAN);
+        //mTrader.setProfession(Villager.Profession.LIBRARIAN);
         mTrader.setGlowing(true);
         PersistentTagger.tagMalmoTrader(mTrader);
         BarterKings.traders.put(villager.getEntityId(), this);
