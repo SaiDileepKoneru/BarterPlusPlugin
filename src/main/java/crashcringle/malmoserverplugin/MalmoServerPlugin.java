@@ -1,6 +1,7 @@
 package crashcringle.malmoserverplugin;
 
 import crashcringle.malmoserverplugin.barterkings.BarterKings;
+import crashcringle.malmoserverplugin.barterkings.players.PlayerHandler;
 import crashcringle.malmoserverplugin.commands.CommandTrade;
 import crashcringle.malmoserverplugin.commands.ConstructTabCompleter;
 import crashcringle.malmoserverplugin.data.Data;
@@ -15,6 +16,8 @@ public final class MalmoServerPlugin extends JavaPlugin {
 
     public static MalmoServerPlugin inst() { return instance; }
 
+    public static PlayerHandler barterGame;
+
     @Override
     public void onEnable() {
         instance = this;
@@ -25,6 +28,7 @@ public final class MalmoServerPlugin extends JavaPlugin {
         instance.getServer().getPluginManager().registerEvents(new MalmoServerListener(), MalmoServerPlugin.instance);
         Data.loadTraders();
         new BarterKings(instance);
+        barterGame = new PlayerHandler();
         Objects.requireNonNull(this.getCommand("barter")).setExecutor(new CommandTrade());
         Objects.requireNonNull(this.getCommand("barter")).setTabCompleter(new ConstructTabCompleter());
     }

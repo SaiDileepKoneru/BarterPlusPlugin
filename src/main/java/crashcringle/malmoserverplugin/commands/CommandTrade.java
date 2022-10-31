@@ -1,6 +1,7 @@
 package crashcringle.malmoserverplugin.commands;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
+import crashcringle.malmoserverplugin.barterkings.players.PlayerHandler;
 import crashcringle.malmoserverplugin.barterkings.trades.Trade;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeRequest;
@@ -46,7 +47,64 @@ public class CommandTrade implements CommandExecutor {
                     sender.sendMessage(ChatColor.GREEN + "/help - Display this help message");                }
                 return true;    // Return true because the command was executed successfully
             } else {
-                if (args[0].equalsIgnoreCase("help")) {
+                if (args[0].equalsIgnoreCase("readyUp")) {
+                    if (sender.hasPermission("malmoserverplugin.ready")) {
+                        if (sender instanceof Player) {
+                            Player player = (Player) sender;
+                            if (args.length == 1) {
+                                if(MalmoServerPlugin.barterGame.isReady(player)) {
+                                    MalmoServerPlugin.barterGame.unready(player);
+                                    sender.sendMessage(ChatColor.GREEN + "You are no longer ready");
+                                } else {
+                                    MalmoServerPlugin.barterGame.readyUp(player);
+                                    sender.sendMessage(ChatColor.GREEN + "You are now ready");
+                                }
+                                return true;
+                            } else {
+                                sender.sendMessage(ChatColor.RED + "Usage: /barter readyUp");
+                                return false;
+                            }
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "You must be a player to use this command");
+                            return false;
+                        }
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "You do not have permission to use this command");
+                        return false;
+                    }
+                } else if (args[0].equalsIgnoreCase("join")) {
+                    if (sender.hasPermission("malmoserverplugin.join")) {
+                        if (sender instanceof Player) {
+                            Player player = (Player) sender;
+                            if (!MalmoServerPlugin.barterGame.isParticipant(player)) {
+                                if (args.length == 1) {
+                                    MalmoServerPlugin.barterGame.addParticipant(player);
+                                    sender.sendMessage(ChatColor.GREEN + "You are now a participant");
+                                    return true;
+                                } else {
+                                    sender.sendMessage(ChatColor.RED + "Usage: /barter join");
+                                    return false;
+                                }
+                            } else {
+                                sender.sendMessage(ChatColor.RED + "You are already a participant");
+                                return false;
+                            }
+                        }
+                    }
+                } else if (args[0].equalsIgnoreCase("start")) {
+                    if (sender.hasPermission("malmoserverplugin.start")) {
+                        if (args.length == 1) {
+                            MalmoServerPlugin.barterGame.attemptStart();
+                            return true;
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "Usage: /barter start");
+                            return false;
+                        }
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "You do not have permission to use this command");
+                        return false;
+                    }
+                }else if (args[0].equalsIgnoreCase("help")) {
                     if (sender.hasPermission("malmoserverplugin.help")) {
                         sender.sendMessage(ChatColor.GRAY + "Commands:");
                         sender.sendMessage(ChatColor.GREEN + "/barter trade <player> <offeredItem> <amount> <requestedItem> <amount> - Request a trade with a player");
