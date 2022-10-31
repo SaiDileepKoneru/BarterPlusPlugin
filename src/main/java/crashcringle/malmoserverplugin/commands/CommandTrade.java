@@ -153,7 +153,25 @@ public class CommandTrade implements CommandExecutor {
                     return true;
                 } else if (args[0].equalsIgnoreCase("trade")) {
                     if (sender.hasPermission("malmoserverplugin.trade.request")) {
-                        if (args.length == 6) {
+                        if (args.length == 4) {
+                            Player requested = Bukkit.getPlayer(args[1]);
+                            if (requested != null) {
+                                if (requested.isOnline()) {
+                                    if (requested != sender) {
+                                        if (sender instanceof Player) {
+                                            Player requester = (Player) sender;
+                                            try {
+                                                TradeController.sendTradeRequest(requester, requested, new Trade(requester.getInventory().getItemInMainHand(),  Integer.parseInt(args[3]), new ItemStack(Material.getMaterial(args[2].toUpperCase())))) ;
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                                sender.sendMessage(ChatColor.RED + "Error");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else if (args.length == 6) {
                             Player requested = Bukkit.getPlayer(args[1]);
                             if (requested != null) {
                                 if (requested.isOnline()) {
