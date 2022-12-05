@@ -16,11 +16,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
 
 import java.util.logging.Level;
 public class MalmoServerListener implements Listener {
+
+
     @EventHandler
     public void openVillager (MalmoTraderInteractEvent event) {
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Recipes!");
@@ -37,7 +40,8 @@ public class MalmoServerListener implements Listener {
     }
 
     @EventHandler
-    public void broadcastTrade (AsyncPlayerChatEvent event) {
+    
+    public void broadcastTradeEvent (AsyncPlayerChatEvent event) {
         if (event.getMessage().contains("want to trade") || event.getMessage().contains("trade with me?") || event.getMessage().contains("trade?")) {
             event.setCancelled(true);
             TextComponent message = new TextComponent(event.getPlayer().getDisplayName() + " wants to trade!");
@@ -52,5 +56,19 @@ public class MalmoServerListener implements Listener {
         }
     }
 
+   /**
+    * @author CrashCringle
+    Listens for when a player right clicks another player
+    */
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEntityEvent event) {
+        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player interacted with " + event.getRightClicked().getName());
+        if (event.getRightClicked() instanceof Player) {
+            Player player = event.getPlayer();
+            Player target = (Player) event.getRightClicked();
+            player.sendMessage(ChatColor.AQUA + "You right clicked " + target.getDisplayName());
+            target.sendMessage(ChatColor.AQUA + player.getDisplayName() + " wants to trade with you!");
+        }
+    }
 
 }

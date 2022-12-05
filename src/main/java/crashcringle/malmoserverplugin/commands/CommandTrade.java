@@ -20,7 +20,9 @@ import java.util.logging.Level;
 
 public class CommandTrade implements CommandExecutor {
 
-
+    // TODO - END CURRENT BARTER GAME IF ONE IS IN PROGRESS
+    // TODO - Announce that a bartering game is starting and that players can join
+    // TODO - Let the player know that they need to ready up to start after joining
     /**
      * Executes the given command, returning its success.
      * <br>
@@ -129,7 +131,7 @@ public class CommandTrade implements CommandExecutor {
                         sender.sendMessage(ChatColor.RED + "You do not have permission to use this command");
                         return false;
                     }
-                }else if (args[0].equalsIgnoreCase("help")) {
+                } else if (args[0].equalsIgnoreCase("help")) {
                     if (sender.hasPermission("malmoserverplugin.help")) {
                         sender.sendMessage(ChatColor.GRAY + "Commands:");
                         sender.sendMessage(ChatColor.GREEN + "/barter trade <player> <offeredItem> <amount> <requestedItem> <amount> - Request a trade with a player");

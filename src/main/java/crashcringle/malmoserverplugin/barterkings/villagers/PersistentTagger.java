@@ -20,8 +20,8 @@ public class PersistentTagger {
     private static final String TRADER_NPC_ENTITY = "MalmoTraderNPC";
     private PersistentTagger() {
     }
-
-    public static void tag(@NotNull Entity entity, String key, String value) {
+ 
+    public static void tag(@NotNull Entity entity, String key, String value) { 
         entity.getPersistentDataContainer().set(new NamespacedKey(MetadataHandler.PLUGIN, key), PersistentDataType.STRING, value);
     }
 

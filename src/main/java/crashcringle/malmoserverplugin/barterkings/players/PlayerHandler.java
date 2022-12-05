@@ -73,8 +73,8 @@ public class PlayerHandler {
         objective.setDisplayName(ChatColor.GOLD + "Role: " + ChatColor.YELLOW + profession.getName());
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         Score score1 = objective.getScore(ChatColor.GOLD + "Trading Goals + Amounts in World!");
-        score1.setScore(0);
-        Score score2 = objective.getScore(ChatColor.GOLD + "Collect them all!");
+        score1.setScore(1);
+        // Score score2 = objective.getScore(ChatColor.GOLD + "Collect them all!");
 
         for (ItemStack item : profession.getTier1Items()) {
             Score score = objective.getScore(ChatColor.GREEN + fm(item.getType()) + " " + ChatColor.YELLOW + "x20" );
