@@ -1,6 +1,7 @@
 package crashcringle.malmoserverplugin.barterkings;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
+import crashcringle.malmoserverplugin.barterkings.players.PlayerHandler;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
 import crashcringle.malmoserverplugin.barterkings.villagers.MalmoTrader;
 
@@ -10,9 +11,11 @@ import java.util.Map;
 public class BarterKings {
 
     public static Map<Integer, MalmoTrader> traders = new HashMap<>();
+    public static PlayerHandler barterGame;
 
     public BarterKings(MalmoServerPlugin plugin) {
         new TradeController();
+        barterGame = new PlayerHandler();
     }
 
     public static Map<Integer, MalmoTrader> getTraders() {

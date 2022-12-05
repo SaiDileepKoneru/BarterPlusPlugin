@@ -10,20 +10,31 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.ipvp.canvas.Menu;
+import org.ipvp.canvas.mask.BinaryMask;
+import org.ipvp.canvas.mask.Mask;
+import org.ipvp.canvas.slot.ClickOptions;
+import org.ipvp.canvas.slot.Slot;
+import org.ipvp.canvas.type.ChestMenu;
 
 
 import java.util.logging.Level;
 public class MalmoServerListener implements Listener {
 
-
+    TradeMenu tradeMenu;
     @EventHandler
     public void openVillager (MalmoTraderInteractEvent event) {
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Recipes!");
@@ -53,7 +64,24 @@ public class MalmoServerListener implements Listener {
                 player.spigot().sendMessage(message);
             }
 
+
         }
+    }
+
+    /** Event that fires when a player drops an item. */
+    @EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        // Get the player and the item they dropped.
+        Player player = event.getPlayer();
+        ItemStack item = event.getItemDrop().getItemStack();
+        // If the item is a diamond, cancel the event.
+        if (item.getType() == Material.DIAMOND) {
+            event.setCancelled(true);
+            // Send the player a message.
+            player.sendMessage("You can't drop diamonds!");
+        }
+        TradeMenu tradeMenu = new TradeMenu(event.getPlayer());
+        tradeMenu.display2Menu(event.getPlayer());
     }
 
    /**
@@ -68,7 +96,14 @@ public class MalmoServerListener implements Listener {
             Player target = (Player) event.getRightClicked();
             player.sendMessage(ChatColor.AQUA + "You right clicked " + target.getDisplayName());
             target.sendMessage(ChatColor.AQUA + player.getDisplayName() + " wants to trade with you!");
+            if (tradeMenu != null) {
+                tradeMenu.displayMenu();
+            } else {
+                tradeMenu = new TradeMenu(player, target);
+            }
+
         }
     }
+
 
 }

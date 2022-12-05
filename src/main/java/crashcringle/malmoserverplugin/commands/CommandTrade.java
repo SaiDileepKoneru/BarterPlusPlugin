@@ -1,6 +1,7 @@
 package crashcringle.malmoserverplugin.commands;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
+import crashcringle.malmoserverplugin.barterkings.BarterKings;
 import crashcringle.malmoserverplugin.barterkings.players.PlayerHandler;
 import crashcringle.malmoserverplugin.barterkings.trades.Trade;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
@@ -60,11 +61,11 @@ public class CommandTrade implements CommandExecutor {
                         if (sender instanceof Player) {
                             Player player = (Player) sender;
                             if (args.length == 1) {
-                                if(MalmoServerPlugin.barterGame.isReady(player)) {
-                                    MalmoServerPlugin.barterGame.unready(player);
+                                if(BarterKings.barterGame.isReady(player)) {
+                                    BarterKings.barterGame.unready(player);
                                     sender.sendMessage(ChatColor.GREEN + "You are no longer ready");
                                 } else {
-                                    MalmoServerPlugin.barterGame.readyUp(player);
+                                    BarterKings.barterGame.readyUp(player);
                                     sender.sendMessage(ChatColor.GREEN + "You are now ready");
                                 }
                                 return true;
@@ -84,9 +85,9 @@ public class CommandTrade implements CommandExecutor {
                     if (sender.hasPermission("malmoserverplugin.join")) {
                         if (sender instanceof Player) {
                             Player player = (Player) sender;
-                            if (!MalmoServerPlugin.barterGame.isParticipant(player)) {
+                            if (!BarterKings.barterGame.isParticipant(player)) {
                                 if (args.length == 1) {
-                                    MalmoServerPlugin.barterGame.addParticipant(player);
+                                    BarterKings.barterGame.addParticipant(player);
                                     sender.sendMessage(ChatColor.GREEN + "You are now a participant");
                                     return true;
                                 } else {
@@ -103,9 +104,9 @@ public class CommandTrade implements CommandExecutor {
                     if (sender.hasPermission("malmoserverplugin.leave")) {
                         if (sender instanceof Player) {
                             Player player = (Player) sender;
-                            if (MalmoServerPlugin.barterGame.isParticipant(player)) {
+                            if (BarterKings.barterGame.isParticipant(player)) {
                                 if (args.length == 1) {
-                                    MalmoServerPlugin.barterGame.removeParticipant(player);
+                                    BarterKings.barterGame.removeParticipant(player);
                                     sender.sendMessage(ChatColor.GREEN + "You are no longer participant");
                                     return true;
                                 } else {
@@ -121,7 +122,7 @@ public class CommandTrade implements CommandExecutor {
                 } else if (args[0].equalsIgnoreCase("start")) {
                     if (sender.hasPermission("malmoserverplugin.start")) {
                         if (args.length == 1) {
-                            MalmoServerPlugin.barterGame.attemptStart();
+                            BarterKings.barterGame.attemptStart();
                             return true;
                         } else {
                             sender.sendMessage(ChatColor.RED + "Usage: /barter start");

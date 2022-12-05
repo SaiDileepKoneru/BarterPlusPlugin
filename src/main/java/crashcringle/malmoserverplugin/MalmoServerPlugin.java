@@ -5,8 +5,9 @@ import crashcringle.malmoserverplugin.barterkings.players.PlayerHandler;
 import crashcringle.malmoserverplugin.commands.CommandTrade;
 import crashcringle.malmoserverplugin.commands.ConstructTabCompleter;
 import crashcringle.malmoserverplugin.data.LegacyData;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-
+import org.ipvp.canvas.MenuFunctionListener;
 import java.util.Objects;
 import java.util.logging.Level;
 
@@ -16,7 +17,6 @@ public final class MalmoServerPlugin extends JavaPlugin {
 
     public static MalmoServerPlugin inst() { return instance; }
 
-    public static PlayerHandler barterGame;
 
     @Override
     public void onEnable() {
@@ -25,10 +25,11 @@ public final class MalmoServerPlugin extends JavaPlugin {
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "########################################");
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "            Malmo Server Plugin         ");
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "########################################");
+        Bukkit.getPluginManager().registerEvents(new MenuFunctionListener(), this);
         instance.getServer().getPluginManager().registerEvents(new MalmoServerListener(), MalmoServerPlugin.instance);
+
         LegacyData.loadTraders();
         new BarterKings(instance);
-        barterGame = new PlayerHandler();
         Objects.requireNonNull(this.getCommand("barter")).setExecutor(new CommandTrade());
         Objects.requireNonNull(this.getCommand("barter")).setTabCompleter(new ConstructTabCompleter());
     }
