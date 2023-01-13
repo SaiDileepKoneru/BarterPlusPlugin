@@ -2,6 +2,7 @@ package crashcringle.malmoserverplugin;
 
 import crashcringle.malmoserverplugin.api.MalmoTraderInteractEvent;
 import crashcringle.malmoserverplugin.barterkings.BarterKings;
+import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
 import crashcringle.malmoserverplugin.barterkings.villagers.MalmoTrader;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -96,12 +97,7 @@ public class MalmoServerListener implements Listener {
             Player target = (Player) event.getRightClicked();
             player.sendMessage(ChatColor.AQUA + "You right clicked " + target.getDisplayName());
             target.sendMessage(ChatColor.AQUA + player.getDisplayName() + " wants to trade with you!");
-            if (tradeMenu != null) {
-                tradeMenu.displayMenu();
-            } else {
-                tradeMenu = new TradeMenu(player, target);
-            }
-
+            TradeController.attemptTradeRequestViaMenu(player, target);
         }
     }
 

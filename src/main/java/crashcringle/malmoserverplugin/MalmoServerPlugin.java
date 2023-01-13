@@ -8,6 +8,10 @@ import crashcringle.malmoserverplugin.data.LegacyData;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.ipvp.canvas.MenuFunctionListener;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Objects;
 import java.util.logging.Level;
 
@@ -17,7 +21,31 @@ public final class MalmoServerPlugin extends JavaPlugin {
 
     public static MalmoServerPlugin inst() { return instance; }
 
+    private Connection connection;
 
+    final String SQL_INSERT_TRADE_REQUEST ="INSERT INTO trade_request(requester, requested, status, time_created, time_finished, game) VALUES (?, ?, ?, ?, ?, ?)";
+    final String SQL_INSERT_TRADE_EXCHANGE = "INSERT INTO trade(requestID, material, amount, offerred) VALUES (?, ?, ?, ?)";
+
+    public Connection getConnection() throws SQLException {
+
+        if(connection != null){
+            return connection;
+        }
+
+        //Try to connect to my MySQL database running locally
+        String url = "jdbc:mysql://localhost/barterplus";
+        String user = "root";
+        String password = "";
+
+        Connection connection = DriverManager.getConnection(url, user, password);
+
+        this.connection = connection;
+
+        System.out.println("Connected to database.");
+
+        return connection;
+    }
+    
     @Override
     public void onEnable() {
         instance = this;

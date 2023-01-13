@@ -3,6 +3,9 @@ package crashcringle.malmoserverplugin.barterkings.trades;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import crashcringle.malmoserverplugin.data.Database;
+
+import java.sql.SQLException;
 import java.util.*;
 
 public class TradeController {
@@ -21,6 +24,18 @@ public class TradeController {
         incomingRequests = new HashMap<>();
     }
 
+    public static void attemptTradeRequestViaMenu(Player requester, Player requested) {
+        if (!hasActiveTradeRequest(requester, requested)) {
+            addTradeRequest(new TradeRequest(requester, requested));
+            requested.sendMessage(ChatColor.AQUA + requester.getName() + " has requested a trade with you");
+        } else {
+            if (getActiveTradeRequest(requester, requested).hasMenu()) {
+                getActiveTradeRequest(requester, requested).getTradeMenu().displayMenu();
+            } else {
+                requester.sendMessage(ChatColor.DARK_RED + "You have already requested an active trade with " + requested.getName());
+            }
+        }
+    }
     public static void sendTradeRequest(Player requester, Player requested, Trade trade) {
         if (!hasActiveTradeRequest(requester, requested)) {
             addTradeRequest(new TradeRequest(requester, requested, trade));
@@ -43,7 +58,7 @@ public class TradeController {
 
     public static void acceptRecentTrade(Player player) {
         if (incomingRequests.containsKey(player)) {
-            TradeRequest request = Collections.max(incomingRequests.get(player), Comparator.comparing(TradeRequest::getTimestamp));
+            TradeRequest request = Collections.max(incomingRequests.get(player), Comparator.comparing(TradeRequest::getBeginTime));
             acceptTradeRequest(request);
         } else {
             player.sendMessage(ChatColor.DARK_RED + "You have no recent trade requests");
@@ -81,7 +96,7 @@ public class TradeController {
     public static void denyRecentTrade(Player player) {
 
         if (incomingRequests.containsKey(player)) {
-            TradeRequest request = Collections.max(incomingRequests.get(player), Comparator.comparing(TradeRequest::getTimestamp));
+            TradeRequest request = Collections.max(incomingRequests.get(player), Comparator.comparing(TradeRequest::getBeginTime));
             declineTradeRequest(request);
         } else {
             player.sendMessage(ChatColor.DARK_RED + "You have no recent active trade requests");
@@ -124,7 +139,7 @@ public class TradeController {
 
     public static void cancelRecentTrade(Player player) {
         if (outgoingRequests.containsKey(player)) {
-            TradeRequest request = Collections.max(outgoingRequests.get(player), Comparator.comparing(TradeRequest::getTimestamp));
+            TradeRequest request = Collections.max(outgoingRequests.get(player), Comparator.comparing(TradeRequest::getBeginTime));
             cancelTradeRequest(request);
         } else {
             player.sendMessage(ChatColor.DARK_RED + "You have not made any outgoing trade requests");
@@ -149,6 +164,11 @@ public class TradeController {
      * @param tradeRequest
      */
     private static void addTradeRequest(TradeRequest tradeRequest) {
+        try {
+            Database.createTradeRequest(tradeRequest);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         if (outgoingRequests.containsKey(tradeRequest.getRequester())) {
             outgoingRequests.get(tradeRequest.getRequester()).add(tradeRequest);
         } else {
@@ -206,7 +226,7 @@ public class TradeController {
 
     public static TradeRequest getRecentTradeRequest(Player player) {
         if (incomingRequests.containsKey(player)) {
-            return Collections.max(incomingRequests.get(player), Comparator.comparing(TradeRequest::getTimestamp));
+            return Collections.max(incomingRequests.get(player), Comparator.comparing(TradeRequest::getBeginTime));
         }
         return null;
     }

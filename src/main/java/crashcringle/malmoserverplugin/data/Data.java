@@ -32,12 +32,15 @@ public class Data implements Serializable {
 
     public void onEnable() {
         configFile = new File(MalmoServerPlugin.inst().getDataFolder(), "config.json");
-        if (!configFile.exists()) MalmoServerPlugin.inst().saveResource(configFile.getName(), false);
+        //JDBC - Java Database Connectivity API
+        this.database = new Database();
         try {
-            map = gson.fromJson(new FileReader(configFile), new HashMap<String, MalmoTrader>().getClass());
-        } catch (Exception e) {
+            this.database.initializeDatabase();
+        } catch (SQLException e) {
             e.printStackTrace();
+            System.out.println("Could not initialize database.");
         }
+
 
     }
 

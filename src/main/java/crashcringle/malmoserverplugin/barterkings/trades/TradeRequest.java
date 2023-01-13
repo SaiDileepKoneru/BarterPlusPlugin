@@ -1,10 +1,12 @@
 package crashcringle.malmoserverplugin.barterkings.trades;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
+import crashcringle.malmoserverplugin.TradeMenu;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController.RequestStatus;
 import java.sql.Timestamp;
 import java.util.logging.Level;
@@ -18,16 +20,29 @@ public class TradeRequest {
     private Trade trade;
     private boolean completed = false;
 
+    private TradeMenu tradeMenu;
+    
     private boolean cancelled = false;
     private RequestStatus requestStatus = RequestStatus.PENDING;
-    private Timestamp timestamp;
+    private Timestamp beginTimestamp;
+    private int gameID = 0;
+    private Timestamp finishedTimestamp;
+
     public TradeRequest(Player requester, Player requested, Trade trade) {
         this.requester = requester;
         this.requested = requested;
         this.trade = trade;
-        this.timestamp = new Timestamp(System.currentTimeMillis());
+        this.beginTimestamp = new Timestamp(System.currentTimeMillis());
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, requester.getName() + " has requested a trade with " + requested.getName());
 
+    }
+
+    public TradeRequest(Player requester, Player requested) {
+        this.requester = requester;
+        this.requested = requested;
+        this.beginTimestamp = new Timestamp(System.currentTimeMillis());
+        MalmoServerPlugin.inst().getLogger().log(Level.INFO, requester.getName() + " has requested a trade with " + requested.getName());
+        this.createTradeMenu();
     }
 
     public Player getRequester() {
@@ -51,6 +66,14 @@ public class TradeRequest {
         return accepted;
     }
 
+    public int getGameID() {
+        return gameID;
+    }
+
+    public void setGameID(int id) {
+        this.gameID = id;
+    }
+
     public void setAccepted(boolean accepted) {
         this.accepted = accepted;
         if (accepted) {
@@ -70,6 +93,7 @@ public class TradeRequest {
         if (completed) {
             requestStatus = accepted ? RequestStatus.ACCEPTED : cancelled ? RequestStatus.CANCELLED : RequestStatus.DECLINED;
             MalmoServerPlugin.inst().getLogger().log(Level.INFO, requester.getName() + " has successfully completed a trade with " + requested.getName());
+            this.finishedTimestamp = new Timestamp(System.currentTimeMillis());
         }
     }
 
@@ -82,13 +106,22 @@ public class TradeRequest {
     }
 
 
-    public Timestamp getTimestamp() {
-        return timestamp;
+    public Timestamp getBeginTime() {
+        return beginTimestamp;
     }
 
-    public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
+    public void setBeginTime(Timestamp timestamp) {
+        this.beginTimestamp = timestamp;
     }
+
+    public Timestamp getFinishTime() {
+        return finishedTimestamp;
+    }
+
+    public void setFinishTime(Timestamp timestamp) {
+        this.finishedTimestamp = timestamp;
+    }
+
     public void sendMessage(String message) {
         requester.sendMessage(message);
         requested.sendMessage(message);
@@ -151,6 +184,80 @@ public class TradeRequest {
 
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
-        this.completed = true;
+        this.setCompleted(true);
     }
+
+    public RequestStatus getRequestStatus() {
+        return requestStatus;
+    }
+
+    // Method that returns the time in seconds since the request was made
+    public long getSecondsSinceRequest() {
+        return (System.currentTimeMillis() - beginTimestamp.getTime()) / 1000;
+    }
+
+    // Method that returns the time in minutes since the request was made
+    public long getMinutesSinceRequest() {
+        return getSecondsSinceRequest() / 60;
+    }
+
+    // Method that returns a  string representation of the trade request
+    public String toString() {
+        String str = requester.getName() + " requested a trade with " + requested.getName() + " at " + beginTimestamp.toString();
+        // What the trade was for
+        str += " " + trade.getOfferedItemsString() + " for " + trade.getRequestedItemsString();
+        return str;
+    }
+    public TradeMenu getTradeMenu() {
+        return tradeMenu;
+    }
+    
+    public boolean hasMenu() {
+        return tradeMenu != null;
+    }
+
+    public void createTradeMenu() {
+        this.tradeMenu = new TradeMenu(requester, requested, this);
+    }
+
+    public void completeTradeMenu() {
+        if (tradeMenu.isPlayer1Ready() && tradeMenu.isPlayer2Ready()) {
+            for (int i = 0; i < tradeMenu.getPlayer1Slots().size(); i++) {
+                // Check that there is an item in the slot
+                if (tradeMenu.getPlayer1Slots().get(i).getItem(tradeMenu.getPlayer1()) != null) {
+                    tradeMenu.getPlayer1Items().add(tradeMenu.getPlayer1Slots().get(i).getItem(tradeMenu.getPlayer1()));
+                }
+            }
+            for (int i = 0; i < tradeMenu.getPlayer2Slots().size(); i++) {
+                // Check that there is an item in the slot
+                if (tradeMenu.getPlayer2Slots().get(i).getItem(tradeMenu.getPlayer2()) != null) {
+                    tradeMenu.getPlayer2Items().add(tradeMenu.getPlayer2Slots().get(i).getItem(tradeMenu.getPlayer2()));
+                }
+            }
+            if (tradeMenu.getPlayer1Items().size() == 0 || tradeMenu.getPlayer2Items().size() == 0) {
+                tradeMenu.getPlayer1().sendMessage(ChatColor.RED + "You must offer at least one item!");
+                tradeMenu.getPlayer2().sendMessage(ChatColor.RED + "You must offer at least one item!");
+                return;
+            } else {
+                this.setTrade(new Trade(tradeMenu.getPlayer1Items(), tradeMenu.getPlayer2Items()));
+                this.accept();
+                this.setCompleted(true);
+                tradeMenu.getPlayer1().sendMessage("You have accepted the trade!");
+                tradeMenu.getPlayer2().sendMessage("You have accepted the trade!");
+            }
+        } else {
+            // If neither player is ready play the villager sound at the player's locatiion
+            tradeMenu.getPlayer1().playSound(tradeMenu.getPlayer1().getLocation(), Sound.ENTITY_VILLAGER_NO, 10, 0.4F);
+            tradeMenu.getPlayer2().playSound(tradeMenu.getPlayer2().getLocation(), Sound.ENTITY_VILLAGER_NO, 10, 0.4F);
+        }
+    }
+
+    public void setTradeMenu(TradeMenu tradeMenu) {
+        this.tradeMenu = tradeMenu;
+    }
+
+    public void setRequestStatus(RequestStatus requestStatus) {
+        this.requestStatus = requestStatus;
+    }
+
 }

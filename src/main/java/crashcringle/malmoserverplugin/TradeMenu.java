@@ -1,34 +1,43 @@
 package crashcringle.malmoserverplugin;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.ipvp.canvas.Menu;
 import org.ipvp.canvas.mask.BinaryMask;
 import org.ipvp.canvas.mask.Mask;
 import org.ipvp.canvas.mask.RecipeMask;
-import org.ipvp.canvas.paginate.PaginatedMenuBuilder;
 import org.ipvp.canvas.slot.ClickOptions;
 import org.ipvp.canvas.slot.Slot;
 import org.ipvp.canvas.type.ChestMenu;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
+import crashcringle.malmoserverplugin.barterkings.trades.TradeRequest;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 public class TradeMenu {
     Menu menu;
     List<Slot> player1Slots = new ArrayList<>();
     List<Slot> player2Slots = new ArrayList<>();
+    List<ItemStack> player1Items = new ArrayList<>();
+    List<ItemStack> player2Items = new ArrayList<>();
     Player player1;
     Player player2;
-    public TradeMenu(Player player1, Player player2) {
+    boolean player1Ready = false;
+    boolean player2Ready = false;
+
+    public TradeMenu(Player player1, Player player2, TradeRequest tradeRequest) {
         this.player1 = player1;
         this.player2 = player2;
         menu = createMenu();
@@ -71,6 +80,17 @@ public class TradeMenu {
             item.setItemMeta(itemMeta);
             return item;
         });
+
+        slot.setClickHandler((player, info) -> {
+            if (player == player1 && !player1Ready) {
+                player1Ready = true;
+                return;
+            } else if (player == player2 && !player2Ready) {
+                player2Ready = true;
+                return;
+            }
+            tradeRequest.completeTradeMenu();
+        });
 //        Menu.Builder pageTemplate = ChestMenu.builder(3).title("Items").redraw(true);
 //        Mask itemSlots = BinaryMask.builder(pageTemplate.getDimensions())
 //                .pattern("011111110").build();
@@ -95,16 +115,17 @@ public class TradeMenu {
         this.player1 = player1;
     }
 
-        public Menu createMenu() {
-        return ChestMenu.builder(4)
-                .title("Trade Menu")
-                .build();
+    public Menu createMenu() {
+    return ChestMenu.builder(4)
+            .title("Trade Menu")
+            .build();
     }
     public void display2Menu(Player player) {
 //        menu = createMenu();
 //        menu.open(player);
 //        addWhiteBorder(menu);
     }
+
     public void displayMenu(Player p1, Player p2) {
         menu.open(p1);
         menu.open(p2);
@@ -113,6 +134,7 @@ public class TradeMenu {
         menu.open(player1);
         menu.open(player2);
     }
+    
     public void addClickOptions(Slot slot) {
         ClickOptions options = ClickOptions.builder()
                 .allow(ClickType.LEFT, ClickType.RIGHT, ClickType.DOUBLE_CLICK, ClickType.CREATIVE, ClickType.UNKNOWN)
