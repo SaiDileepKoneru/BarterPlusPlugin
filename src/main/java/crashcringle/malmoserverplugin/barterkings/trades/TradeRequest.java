@@ -28,21 +28,33 @@ public class TradeRequest {
     private int gameID = 0;
     private Timestamp finishedTimestamp;
 
+    String requestID = "";
+
     public TradeRequest(Player requester, Player requested, Trade trade) {
         this.requester = requester;
         this.requested = requested;
         this.trade = trade;
         this.beginTimestamp = new Timestamp(System.currentTimeMillis());
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, requester.getName() + " has requested a trade with " + requested.getName());
-
+        this.requestID = requester.getName() + requested.getName() + beginTimestamp.toString();
     }
 
     public TradeRequest(Player requester, Player requested) {
         this.requester = requester;
         this.requested = requested;
         this.beginTimestamp = new Timestamp(System.currentTimeMillis());
+        this.requestID = requester.getName() + requested.getName() + beginTimestamp.toString();
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, requester.getName() + " has requested a trade with " + requested.getName());
         this.createTradeMenu();
+
+    }
+
+    public void setRequestID(String requestID) {
+        this.requestID = requestID;
+    }
+
+    public String getRequestID() {
+        return this.requestID;
     }
 
     public Player getRequester() {
@@ -225,13 +237,13 @@ public class TradeRequest {
             for (int i = 0; i < tradeMenu.getPlayer1Slots().size(); i++) {
                 // Check that there is an item in the slot
                 if (tradeMenu.getPlayer1Slots().get(i).getItem(tradeMenu.getPlayer1()) != null) {
-                    tradeMenu.getPlayer1Items().add(tradeMenu.getPlayer1Slots().get(i).getItem(tradeMenu.getPlayer1()));
+                    tradeMenu.getPlayer1Items().add(tradeMenu.getPlayer1Slots().get(i).getRawItem(tradeMenu.getPlayer1()));
                 }
             }
             for (int i = 0; i < tradeMenu.getPlayer2Slots().size(); i++) {
                 // Check that there is an item in the slot
                 if (tradeMenu.getPlayer2Slots().get(i).getItem(tradeMenu.getPlayer2()) != null) {
-                    tradeMenu.getPlayer2Items().add(tradeMenu.getPlayer2Slots().get(i).getItem(tradeMenu.getPlayer2()));
+                    tradeMenu.getPlayer2Items().add(tradeMenu.getPlayer2Slots().get(i).getRawItem(tradeMenu.getPlayer2()));
                 }
             }
             if (tradeMenu.getPlayer1Items().size() == 0 || tradeMenu.getPlayer2Items().size() == 0) {

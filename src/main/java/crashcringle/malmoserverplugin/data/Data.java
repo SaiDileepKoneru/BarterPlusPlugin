@@ -32,14 +32,14 @@ public class Data implements Serializable {
 
     public void onEnable() {
         configFile = new File(MalmoServerPlugin.inst().getDataFolder(), "config.json");
-        //JDBC - Java Database Connectivity API
-        this.database = new Database();
-        try {
-            this.database.initializeDatabase();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println("Could not initialize database.");
-        }
+//        //JDBC - Java Database Connectivity API
+//        this.database = new Database();
+//        try {
+//            this.database.initializeDatabase();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            System.out.println("Could not initialize database.");
+//        }
 
 
     }

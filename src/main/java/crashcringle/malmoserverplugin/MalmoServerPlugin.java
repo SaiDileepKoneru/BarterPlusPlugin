@@ -4,6 +4,7 @@ import crashcringle.malmoserverplugin.barterkings.BarterKings;
 import crashcringle.malmoserverplugin.barterkings.players.PlayerHandler;
 import crashcringle.malmoserverplugin.commands.CommandTrade;
 import crashcringle.malmoserverplugin.commands.ConstructTabCompleter;
+import crashcringle.malmoserverplugin.data.Database;
 import crashcringle.malmoserverplugin.data.LegacyData;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -57,6 +58,7 @@ public final class MalmoServerPlugin extends JavaPlugin {
         instance.getServer().getPluginManager().registerEvents(new MalmoServerListener(), MalmoServerPlugin.instance);
 
         LegacyData.loadTraders();
+        new Database();
         new BarterKings(instance);
         Objects.requireNonNull(this.getCommand("barter")).setExecutor(new CommandTrade());
         Objects.requireNonNull(this.getCommand("barter")).setTabCompleter(new ConstructTabCompleter());

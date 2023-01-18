@@ -71,6 +71,17 @@ public class TradeMenu {
             item.setItemMeta(itemMeta);
             return item;
         });
+
+        slot = menu.getSlot(32);
+        slot.setItemTemplate(p -> {
+            int level = p.getLevel();
+            ItemStack item = new ItemStack(Material.REDSTONE);
+            ItemMeta itemMeta = item.getItemMeta();
+            itemMeta.setDisplayName(ChatColor.RED + "Deny trade?");
+            item.setItemMeta(itemMeta);
+            return item;
+        });
+
         slot = menu.getSlot(35);
         slot.setItemTemplate(p -> {
             int level = p.getLevel();
@@ -81,6 +92,25 @@ public class TradeMenu {
             return item;
         });
 
+        slot.setClickHandler((player, info) -> {
+            if (player == player1 && !player1Ready) {
+                player1Ready = true;
+                return;
+            } else if (player == player2 && !player2Ready) {
+                player2Ready = true;
+                return;
+            }
+            tradeRequest.completeTradeMenu();
+        });
+        slot = menu.getSlot(30);
+        slot.setItemTemplate(p -> {
+            int level = p.getLevel();
+            ItemStack item = new ItemStack(Material.EMERALD);
+            ItemMeta itemMeta = item.getItemMeta();
+            itemMeta.setDisplayName(ChatColor.GREEN + "Accept trade?");
+            item.setItemMeta(itemMeta);
+            return item;
+        });
         slot.setClickHandler((player, info) -> {
             if (player == player1 && !player1Ready) {
                 player1Ready = true;
