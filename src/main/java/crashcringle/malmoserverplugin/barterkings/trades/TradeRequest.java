@@ -28,21 +28,33 @@ public class TradeRequest {
     private int gameID = 0;
     private Timestamp finishedTimestamp;
 
+    String requestID = "";
+
     public TradeRequest(Player requester, Player requested, Trade trade) {
         this.requester = requester;
         this.requested = requested;
         this.trade = trade;
         this.beginTimestamp = new Timestamp(System.currentTimeMillis());
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, requester.getName() + " has requested a trade with " + requested.getName());
-
+        this.requestID = requester.getName() + requested.getName() + beginTimestamp.toString();
     }
 
     public TradeRequest(Player requester, Player requested) {
         this.requester = requester;
         this.requested = requested;
         this.beginTimestamp = new Timestamp(System.currentTimeMillis());
+        this.requestID = requester.getName() + requested.getName() + beginTimestamp.toString();
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, requester.getName() + " has requested a trade with " + requested.getName());
         this.createTradeMenu();
+
+    }
+
+    public void setRequestID(String requestID) {
+        this.requestID = requestID;
+    }
+
+    public String getRequestID() {
+        return this.requestID;
     }
 
     public Player getRequester() {

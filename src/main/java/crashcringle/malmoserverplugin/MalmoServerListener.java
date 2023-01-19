@@ -4,6 +4,7 @@ import crashcringle.malmoserverplugin.api.MalmoTraderInteractEvent;
 import crashcringle.malmoserverplugin.barterkings.BarterKings;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
 import crashcringle.malmoserverplugin.barterkings.villagers.MalmoTrader;
+import crashcringle.malmoserverplugin.data.Database;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -18,10 +19,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerChatEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.ipvp.canvas.Menu;
@@ -32,6 +30,7 @@ import org.ipvp.canvas.slot.Slot;
 import org.ipvp.canvas.type.ChestMenu;
 
 
+import java.sql.SQLException;
 import java.util.logging.Level;
 public class MalmoServerListener implements Listener {
 
@@ -69,6 +68,18 @@ public class MalmoServerListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onPlayerJoinEvent(PlayerJoinEvent event) {
+        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player joined!");
+        event.getPlayer().sendMessage("Welcome to the BarterPlus Environment!");
+        event.getPlayer().sendMessage("Type /trade to open the trade menu!");
+        try {
+            Database.createPlayer(event.getPlayer());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
     /** Event that fires when a player drops an item. */
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {

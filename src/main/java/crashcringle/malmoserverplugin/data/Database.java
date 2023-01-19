@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.sql.*;
 import java.util.logging.Level;
 
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
@@ -17,13 +18,22 @@ public class Database {
     //final String SQL_INSERT_TRADE_REQUEST ="INSERT INTO trade_request(requester, requested, status, time_created, time_finished, game) VALUES (?, ?, ?, ?, ?, ?)";
    // final String SQL_INSERT_TRADE_EXCHANGE = "INSERT INTO trade(requestID, material, amount, offerred) VALUES (?, ?, ?, ?)";
 
+    public Database() {
+        try {
+            initializeDatabase();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public void initializeDatabase() throws SQLException, IOException {
         // first lets read our setup file.
         // This file contains statements to create our inital tables.
         // it is located in the resources.
         String setup;
-        try (InputStream in = MalmoServerPlugin.inst().getResource("dbsetup.sql")) {
+        try (InputStream in = MalmoServerPlugin.inst().getResource("barterDb.sql")) {
             // Java 9+ way
             setup = new String(in.readAllBytes());
         } catch (IOException e) {
@@ -84,28 +94,43 @@ public class Database {
         createExchanges(request.getTrade(), request.getRequestID());
     }
 
+    public static void createPlayer(Player player) throws SQLException {
+
+//        PreparedStatement statement = MalmoServerPlugin.inst().getConnection()
+//                .prepareStatement("INSERT INTO participants(player_uuid, username, firstName, lastName, age ) VALUES (?, ?, ?, ?, ?)");
+//        statement.setString(1, player.getUniqueId().toString());
+//        statement.setString(2, player.getName());
+//        statement.setString(3, player.getDisplayName());
+//        statement.setString(4, player.getCustomName());
+//        statement.setInt(5, 20);
+//
+//        statement.executeUpdate();
+//
+//        statement.close();
+
+    }
     public static void createExchanges(Trade trade, String requestID) throws SQLException {
 
-        PreparedStatement statement = MalmoServerPlugin.inst().getConnection()
-                .prepareStatement("INSERT INTO trade(requestID, material, amount, offerred) VALUES (?, ?, ?, ?)");
-        for (ItemStack item : trade.getRequestedItems()) {
-            statement.setString(1, requestID);
-            statement.setString(2, item.getType().name());
-            statement.setInt(3, item.getAmount());
-            statement.setBoolean(4, false);
-            statement.addBatch();
-        }
-        statement.executeBatch();
-        for (ItemStack item : trade.getOfferedItems()) {
-            statement.setString(1, requestID);
-            statement.setString(2, item.getType().name());
-            statement.setInt(3, item.getAmount());
-            statement.setBoolean(4, true);
-            statement.addBatch();
-        }
-        statement.executeBatch();
-
-        statement.close();
+//        PreparedStatement statement = MalmoServerPlugin.inst().getConnection()
+//                .prepareStatement("INSERT INTO trade(requestID, material, amount, offerred) VALUES (?, ?, ?, ?)");
+//        for (ItemStack item : trade.getRequestedItems()) {
+//            statement.setString(1, requestID);
+//            statement.setString(2, item.getType().name());
+//            statement.setInt(3, item.getAmount());
+//            statement.setBoolean(4, false);
+//            statement.addBatch();
+//        }
+//        statement.executeBatch();
+//        for (ItemStack item : trade.getOfferedItems()) {
+//            statement.setString(1, requestID);
+//            statement.setString(2, item.getType().name());
+//            statement.setInt(3, item.getAmount());
+//            statement.setBoolean(4, true);
+//            statement.addBatch();
+//        }
+//        statement.executeBatch();
+//
+//        statement.close();
 
     }
 
