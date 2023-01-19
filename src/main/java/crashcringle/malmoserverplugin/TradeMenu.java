@@ -71,6 +71,48 @@ public class TradeMenu {
             item.setItemMeta(itemMeta);
             return item;
         });
+        
+        slot.setClickHandler((player, info) -> {
+            tradeRequest.setCancelled(true);
+            this.menu.close();
+        });
+
+        slot = menu.getSlot(31);
+        slot.setItemTemplate(p -> {
+            int level = p.getLevel();
+            ItemStack item = new ItemStack(Material.EMERALD);
+            ItemMeta itemMeta = item.getItemMeta();
+            itemMeta.setDisplayName(ChatColor.GREEN + "Accept trade?");
+            item.setItemMeta(itemMeta);
+            return item;
+        });
+
+        slot.setClickHandler((player, info) -> {
+            if (player == player1 && !player1Ready) {
+                player1Ready = true;
+                return;
+            } else if (player == player2 && !player2Ready) {
+                player2Ready = true;
+                return;
+            }
+            tradeRequest.completeTradeMenu();
+        });
+
+        slot = menu.getSlot(31);
+        slot.setItemTemplate(p -> {
+            int level = p.getLevel();
+            ItemStack item = new ItemStack(Material.REDSTONE);
+            ItemMeta itemMeta = item.getItemMeta();
+            itemMeta.setDisplayName(ChatColor.RED + "Deny trade?");
+            item.setItemMeta(itemMeta);
+            return item;
+        });
+        
+        slot.setClickHandler((player, info) -> {
+            tradeRequest.setCancelled(true);
+            this.menu.close();
+        });
+
         slot = menu.getSlot(35);
         slot.setItemTemplate(p -> {
             int level = p.getLevel();
@@ -205,6 +247,7 @@ public class TradeMenu {
                 // If the slot is empty, set the item in the slot to the item that the player is adding
                 if (info.getClickedSlot().getRawItem(player) == null) {
                     info.getClickedSlot().setRawItem(oppPlayer, addingItem);
+
                 } else {
                     // Get the item that is currently in the slot
                     ItemStack slotItem = new ItemStack(info.getClickedSlot().getRawItem(player));
@@ -213,6 +256,7 @@ public class TradeMenu {
                     // If the slot is not empty, add the item that the player is adding to the item in the slot
                     slotItem.setAmount(slotAmount + addingAmount);
                     info.getClickedSlot().setRawItem(oppPlayer, slotItem);
+                    info.getClickedSlot().setItem(slotItem);
                 }
             } else if (info.isTakingItem()) {
                 // Get the item that the player is taking

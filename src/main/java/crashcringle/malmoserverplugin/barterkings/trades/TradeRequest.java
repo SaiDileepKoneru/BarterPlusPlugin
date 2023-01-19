@@ -224,14 +224,14 @@ public class TradeRequest {
         if (tradeMenu.isPlayer1Ready() && tradeMenu.isPlayer2Ready()) {
             for (int i = 0; i < tradeMenu.getPlayer1Slots().size(); i++) {
                 // Check that there is an item in the slot
-                if (tradeMenu.getPlayer1Slots().get(i).getItem(tradeMenu.getPlayer1()) != null) {
-                    tradeMenu.getPlayer1Items().add(tradeMenu.getPlayer1Slots().get(i).getItem(tradeMenu.getPlayer1()));
+                if (tradeMenu.getPlayer1Slots().get(i).getRawItem(tradeMenu.getPlayer1()) != null) {
+                    tradeMenu.getPlayer1Items().add(tradeMenu.getPlayer1Slots().get(i).getRawItem(tradeMenu.getPlayer1()));
                 }
             }
             for (int i = 0; i < tradeMenu.getPlayer2Slots().size(); i++) {
                 // Check that there is an item in the slot
-                if (tradeMenu.getPlayer2Slots().get(i).getItem(tradeMenu.getPlayer2()) != null) {
-                    tradeMenu.getPlayer2Items().add(tradeMenu.getPlayer2Slots().get(i).getItem(tradeMenu.getPlayer2()));
+                if (tradeMenu.getPlayer2Slots().get(i).getRawItem(tradeMenu.getPlayer2()) != null) {
+                    tradeMenu.getPlayer2Items().add(tradeMenu.getPlayer2Slots().get(i).getRawItem(tradeMenu.getPlayer2()));
                 }
             }
             if (tradeMenu.getPlayer1Items().size() == 0 || tradeMenu.getPlayer2Items().size() == 0) {
