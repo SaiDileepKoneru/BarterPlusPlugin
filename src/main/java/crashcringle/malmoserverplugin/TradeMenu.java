@@ -234,6 +234,25 @@ public class TradeMenu {
     }
     public void addCloseHandler(Menu menu) {
         menu.setCloseHandler((player, menu1) -> {
+            if (!this.isPlayer1Ready() || !this.isPlayer2Ready()) {
+                if (player == player1) {
+                    for (int i = 0; i < this.getPlayer1Slots().size(); i++) {
+                        // Check that there is an item in the slot
+                        if (this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()) != null) {
+                            player.getInventory().addItem(this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()));
+                        }
+                    }
+                    menu1.close(player2);
+                } else {
+                    for (int i = 0; i < this.getPlayer2Slots().size(); i++) {
+                        // Check that there is an item in the slot
+                        if (this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()) != null) {
+                            player.getInventory().addItem(this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()));
+                        }
+                    }
+                    menu1.close(player1);
+                }
+            }
             player.sendMessage("You just closed the menu...");
         });
     }
@@ -276,22 +295,39 @@ public class TradeMenu {
                 if (info.getClickedSlot().getRawItem(player) == null) {
                     info.getClickedSlot().setRawItem(oppPlayer, addingItem);
                     info.getClickedSlot().setItem(addingItem);
-                } else {
-                    // Get the item that is currently in the slot
-                    ItemStack slotItem = new ItemStack(info.getClickedSlot().getRawItem(player));
-                    // Get the amount of the item that is currently in the slot
-                    int slotAmount = slotItem.getAmount();
-                    // If the slot is not empty, add the item that the player is adding to the item in the slot
-                    slotItem.setAmount(slotAmount + addingAmount);
-                    
-                    MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Slot Amount: " + slotAmount + " Adding Amount: " + addingAmount + " Total: " + slotItem.getAmount());
-                    info.getClickedSlot().setRawItem(oppPlayer, slotItem);
-                    info.getClickedSlot().setItem(slotItem);
                 }
-            } else if (info.isTakingItem()) {
-                this.menu.update(oppPlayer);
-
             }
+            switch (info.getAction()) {
+                case PLACE_ALL:
+                    // Get the item that the player is adding
+                    ItemStack addingItem = new ItemStack(info.getAddingItem());
+                    // Get the amount of the item that the player is adding
+                    int addingAmount = info.getItemAmount();
+                    addingItem.setAmount(addingAmount);
+                    info.getClickedSlot().setRawItem(oppPlayer, addingItem);
+                    break;
+                case PLACE_ONE:
+                    ItemStack addingItem2 = new ItemStack(info.getAddingItem());
+                    // Get the amount of the item that the player is adding
+                    addingItem2.setAmount(1);
+                    if (info.getClickedSlot().getRawItem(player) == null) {
+                        info.getClickedSlot().setRawItem(oppPlayer, addingItem2);
+                    } else {
+                        info.getClickedSlot().getRawItem(oppPlayer).setAmount(Math.max(info.getClickedSlot().getRawItem(oppPlayer).getAmount() + 1,0));
+                    }
+                    break;
+                case PICKUP_ALL:
+                    info.getClickedSlot().getRawItem(oppPlayer).setAmount(0);
+                    break;
+                case PICKUP_HALF:
+                    info.getClickedSlot().getRawItem(oppPlayer).setAmount(Math.max(Math.round(info.getClickedSlot().getRawItem(oppPlayer).getAmount() / 2),0));
+                    break;
+                case PICKUP_ONE:
+                    info.getClickedSlot().getRawItem(oppPlayer).setAmount(Math.max(info.getClickedSlot().getRawItem(oppPlayer).getAmount() - 1,0));
+                    break;
+            }
+            info.getClickedSlot().setRawItem(player, info.getClickedSlot().getRawItem(oppPlayer));
+            //info.getClickedSlot().setItem(info.getClickedSlot().setItemTemplate);
             // Additional functionality goes here
         });
     }
