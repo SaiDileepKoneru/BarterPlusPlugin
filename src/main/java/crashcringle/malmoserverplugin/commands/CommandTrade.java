@@ -132,6 +132,19 @@ public class CommandTrade implements CommandExecutor {
                         sender.sendMessage(ChatColor.RED + "You do not have permission to use this command");
                         return false;
                     }
+                } else if (args[0].equalsIgnoreCase("end")) {
+                    if (sender.hasPermission("malmoserverplugin.end")) {
+                        if (args.length == 1) {
+                            BarterKings.barterGame.attemptEnd();
+                            return true;
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "Usage: /barter end");
+                            return false;
+                        }
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "You do not have permission to use this command");
+                        return false;
+                    }
                 } else if (args[0].equalsIgnoreCase("help")) {
                     if (sender.hasPermission("malmoserverplugin.help")) {
                         sender.sendMessage(ChatColor.GRAY + "Commands:");

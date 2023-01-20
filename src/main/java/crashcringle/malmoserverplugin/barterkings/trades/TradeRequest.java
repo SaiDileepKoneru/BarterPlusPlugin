@@ -145,8 +145,27 @@ public class TradeRequest {
         } else {
             getRequested().sendMessage(ChatColor.GREEN + "You have accepted the trade request from " + getRequester().getName());
             getRequester().sendMessage(ChatColor.GREEN + "Your trade request has been accepted by " + getRequested().getName());
+            if (this.tradeMenu != null) {
+                tradeMenu.getMenu().close();
+                //tradeMenu.getMenu().close(requester);
+                //tradeMenu.getMenu().close(requested);
+                // Loop through requested items and give them to the requester
+                for (ItemStack item : trade.getRequestedItems()) {
+                    requester.getInventory().addItem(item);
+                    // Remove the item from the requested player's inventory
+                    //requested.getInventory().removeItem(item);
+                }
+                // Loop through offered items and give them to the requested
+                for (ItemStack item : trade.getOfferedItems()) {
+                    requested.getInventory().addItem(item);
+                    // Remove the item from the requester's inventory
+                    //requester.getInventory().removeItem(item);
+                }
+                this.setAccepted(true);
+                sendMessage(ChatColor.GOLD + "Trade completed!");
+
             // First check if the requested item is valid
-            if (trade.getRequestedItem() != null) {
+            } else if (trade.getRequestedItem() != null) {
                 // Then check if the offered item is valid
                 if (trade.getOfferedItem() != null) {
                     // Then check if the requesting player has the requested item
@@ -254,6 +273,7 @@ public class TradeRequest {
                 this.setTrade(new Trade(tradeMenu.getPlayer1Items(), tradeMenu.getPlayer2Items()));
                 this.accept();
                 this.setCompleted(true);
+                tradeMenu.getPlayer1().playSound(tradeMenu.getPlayer1().getLocation(), Sound.ENTITY_VILLAGER_CELEBRATE, 10, 2F);
                 tradeMenu.getPlayer1().sendMessage("You have accepted the trade!");
                 tradeMenu.getPlayer2().sendMessage("You have accepted the trade!");
             }

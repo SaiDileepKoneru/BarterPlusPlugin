@@ -106,6 +106,10 @@ public class PlayerHandler {
     public void attemptStart() {
         Checkup();
     }
+    public void attemptEnd() {
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt stop barterKings");
+        getParticipants().clear();
+    }
     public void removeParticipant(Player player) {
         getParticipants().remove(new Participant(player));
     }

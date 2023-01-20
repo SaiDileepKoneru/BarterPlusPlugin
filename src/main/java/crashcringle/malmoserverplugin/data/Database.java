@@ -32,24 +32,24 @@ public class Database {
         // first lets read our setup file.
         // This file contains statements to create our inital tables.
         // it is located in the resources.
-        String setup;
-        try (InputStream in = MalmoServerPlugin.inst().getResource("barterDb.sql")) {
-            // Java 9+ way
-            setup = new String(in.readAllBytes());
-        } catch (IOException e) {
-            MalmoServerPlugin.inst().getLogger().log(Level.SEVERE, "Could not read db setup file.", e);
-            throw e;
-        }
-        // Mariadb can only handle a single query per statement. We need to split at ;.
-        String[] queries = setup.split(";");
-        // execute each query to the database.
-        for (String query : queries) {
-            try (Connection conn = MalmoServerPlugin.inst().getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.execute();
-                stmt.close();
-            }
-        }
+        // String setup;
+        // try (InputStream in = MalmoServerPlugin.inst().getResource("barterDb.sql")) {
+        //     // Java 9+ way
+        //     setup = new String(in.readAllBytes());
+        // } catch (Exception e) {
+        //     MalmoServerPlugin.inst().getLogger().log(Level.SEVERE, "Could not read db setup file.", e);
+        //     throw e;
+        // }
+        // // Mariadb can only handle a single query per statement. We need to split at ;.
+        // String[] queries = setup.split(";");
+        // // execute each query to the database.
+        // for (String query : queries) {
+        //     try (Connection conn = MalmoServerPlugin.inst().getConnection();
+        //          PreparedStatement stmt = conn.prepareStatement(query)) {
+        //         stmt.execute();
+        //         stmt.close();
+        //     }
+        // }
         MalmoServerPlugin.inst().getLogger().info("§2Database setup complete.");
     }
     
@@ -78,20 +78,20 @@ public class Database {
 
     public static void createTradeRequest(TradeRequest request) throws SQLException {
 
-        PreparedStatement statement = MalmoServerPlugin.inst().getConnection()
-                .prepareStatement("INSERT INTO trade_request(requester, requested, status, time_created, time_finished, game) VALUES (?, ?, ?, ?, ?, ?)");
-        statement.setString(1, request.getRequester().getUniqueId().toString());
-        statement.setString(2, request.getRequested().getUniqueId().toString());
-        statement.setString(3, request.getRequestStatus().name());
-        statement.setLong(4, request.getBeginTime().getTime());
-        statement.setLong(5, request.getFinishTime().getTime());
-        statement.setInt(6, request.getGameID());
+        // PreparedStatement statement = MalmoServerPlugin.inst().getConnection()
+        //         .prepareStatement("INSERT INTO trade_request(requester, requested, status, time_created, time_finished, game) VALUES (?, ?, ?, ?, ?, ?)");
+        // statement.setString(1, request.getRequester().getUniqueId().toString());
+        // statement.setString(2, request.getRequested().getUniqueId().toString());
+        // statement.setString(3, request.getRequestStatus().name());
+        // statement.setLong(4, request.getBeginTime().getTime());
+        // statement.setLong(5, request.getFinishTime().getTime());
+        // statement.setInt(6, request.getGameID());
 
-        statement.executeUpdate();
+        // statement.executeUpdate();
 
-        statement.close();
+        // statement.close();
 
-        createExchanges(request.getTrade(), request.getRequestID());
+        // createExchanges(request.getTrade(), request.getRequestID());
     }
 
     public static void createPlayer(Player player) throws SQLException {

@@ -6,6 +6,7 @@ import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.ClickType;
@@ -145,9 +146,11 @@ public class TradeMenu {
         slot.setClickHandler((player, info) -> {
             if (player == player1 && !player1Ready) {
                 player1Ready = true;
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 10, 0.4F);
                 return;
             } else if (player == player2 && !player2Ready) {
                 player2Ready = true;
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 10, 0.4F);
                 return;
             }
             tradeRequest.completeTradeMenu();
@@ -202,6 +205,7 @@ public class TradeMenu {
                 .allow(InventoryAction.PLACE_ALL, InventoryAction.DROP_ONE_SLOT, InventoryAction.DROP_ALL_CURSOR, InventoryAction.SWAP_WITH_CURSOR, InventoryAction.PLACE_SOME, InventoryAction.PICKUP_SOME, InventoryAction.PICKUP_ONE, InventoryAction.PICKUP_ALL, InventoryAction.PICKUP_HALF, InventoryAction.UNKNOWN, InventoryAction.HOTBAR_SWAP, InventoryAction.PLACE_ONE, InventoryAction.PLACE_SOME)
                 .build();
         slot.setClickOptions(options);
+        
     }
     public void makeSlotsAccessible(Menu menu) {
         int rows = 2;
@@ -245,14 +249,19 @@ public class TradeMenu {
                 return;
             }
             // If the slot is the player's slot, allow the click
-
+            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "\n********************************");
             MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player " + player.getName() + " clicked slot " + slot.getIndex() + " at " + System.currentTimeMillis());
             MalmoServerPlugin.inst().getLogger().log(Level.INFO, info.getClickType().toString() + " " + info.getAction().toString() + " " + info.getResult().toString());
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, info.getClickedSlot().getItem(player1) + " vs" +info.getClickedSlot().getItem(player2));
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, info.getClickedSlot().getRawItem(player1) + " vs" + info.getClickedSlot().getRawItem(player2));
-           // MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Amount : " + info.getItemAmount());
+            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "P1Item " + info.getClickedSlot().getItem(player1) + " vs" +info.getClickedSlot().getItem(player2));
+            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "P1RawItem " + info.getClickedSlot().getRawItem(player1) + " vs" + info.getClickedSlot().getRawItem(player2));
+           try {
+            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Amount : " + info.getItemAmount());
+            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Adding Item : " + info.getAddingItem());
+           } catch(Exception e) {
+
+           }
             MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Cursor Item : " + player.getItemOnCursor());
-            //MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Adding Item : " + info.getAddingItem());
+
 
             player.sendMessage("You clicked the slot at index " + info.getClickedSlot().getIndex());
             Player oppPlayer = player == player1 ? player2 : player1;
@@ -266,7 +275,7 @@ public class TradeMenu {
                 // If the slot is empty, set the item in the slot to the item that the player is adding
                 if (info.getClickedSlot().getRawItem(player) == null) {
                     info.getClickedSlot().setRawItem(oppPlayer, addingItem);
-
+                    info.getClickedSlot().setItem(addingItem);
                 } else {
                     // Get the item that is currently in the slot
                     ItemStack slotItem = new ItemStack(info.getClickedSlot().getRawItem(player));
@@ -274,11 +283,13 @@ public class TradeMenu {
                     int slotAmount = slotItem.getAmount();
                     // If the slot is not empty, add the item that the player is adding to the item in the slot
                     slotItem.setAmount(slotAmount + addingAmount);
+                    
+                    MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Slot Amount: " + slotAmount + " Adding Amount: " + addingAmount + " Total: " + slotItem.getAmount());
                     info.getClickedSlot().setRawItem(oppPlayer, slotItem);
                     info.getClickedSlot().setItem(slotItem);
                 }
             } else if (info.isTakingItem()) {
-                // Get the item that the player is taking
+                this.menu.update(oppPlayer);
 
             }
             // Additional functionality goes here
