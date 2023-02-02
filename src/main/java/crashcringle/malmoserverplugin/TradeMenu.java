@@ -75,6 +75,7 @@ public class TradeMenu {
         
         slot.setClickHandler((player, info) -> {
             tradeRequest.setCancelled(true);
+            returnItems();
             this.menu.close();
         });
 
@@ -202,7 +203,7 @@ public class TradeMenu {
     public void addClickOptions(Slot slot) {
         ClickOptions options = ClickOptions.builder()
                 .allow(ClickType.LEFT, ClickType.RIGHT, ClickType.DOUBLE_CLICK, ClickType.CREATIVE, ClickType.UNKNOWN)
-                .allow(InventoryAction.PLACE_ALL, InventoryAction.DROP_ONE_SLOT, InventoryAction.DROP_ALL_CURSOR, InventoryAction.SWAP_WITH_CURSOR, InventoryAction.PLACE_SOME, InventoryAction.PICKUP_SOME, InventoryAction.PICKUP_ONE, InventoryAction.PICKUP_ALL, InventoryAction.PICKUP_HALF, InventoryAction.UNKNOWN, InventoryAction.HOTBAR_SWAP, InventoryAction.PLACE_ONE, InventoryAction.PLACE_SOME)
+                .allow(InventoryAction.PLACE_ALL, InventoryAction.DROP_ONE_SLOT, InventoryAction.DROP_ALL_CURSOR, InventoryAction.SWAP_WITH_CURSOR, InventoryAction.PICKUP_SOME, InventoryAction.PICKUP_ONE, InventoryAction.PICKUP_ALL, InventoryAction.PICKUP_HALF, InventoryAction.UNKNOWN, InventoryAction.HOTBAR_SWAP, InventoryAction.PLACE_ONE)
                 .build();
         slot.setClickOptions(options);
         
@@ -235,26 +236,42 @@ public class TradeMenu {
     public void addCloseHandler(Menu menu) {
         menu.setCloseHandler((player, menu1) -> {
             if (!this.isPlayer1Ready() || !this.isPlayer2Ready()) {
-                if (player == player1) {
-                    for (int i = 0; i < this.getPlayer1Slots().size(); i++) {
-                        // Check that there is an item in the slot
-                        if (this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()) != null) {
-                            player.getInventory().addItem(this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()));
-                        }
-                    }
-                    menu1.close(player2);
-                } else {
-                    for (int i = 0; i < this.getPlayer2Slots().size(); i++) {
-                        // Check that there is an item in the slot
-                        if (this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()) != null) {
-                            player.getInventory().addItem(this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()));
-                        }
-                    }
-                    menu1.close(player1);
-                }
+                returnItems();
+                menu.close(player1);
+                menu.close(player2);
             }
             player.sendMessage("You just closed the menu...");
         });
+    }
+
+    public void returnItems() {
+                    // ArrayList<ItemStack> player1Items = new ArrayList<>();
+            // ArrayList<ItemStack> player2Items = new ArrayList<>();
+        for (int i = 0; i < this.getPlayer1Slots().size(); i++) {
+            // Check that there is an item in the slot
+            if (this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()) != null) {
+                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 1 Slots: " + this.getPlayer1Slots().size());
+                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 1 Slot " + i + " : " + this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()));
+                player1Items.add(this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()));
+            }
+        }
+        for (int i = 0; i < this.getPlayer2Slots().size(); i++) {
+            // Check that there is an item in the slot
+            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 2 Slots: " + this.getPlayer2Slots().size());
+            if (this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()) != null) {
+                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 2 Slot " + i + " : " + this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()));
+                player2Items.add(this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()));
+            }
+        }
+        for (int i = 0; i < this.getPlayer1Items().size(); i++) {
+            // Check that there is an item in the slot
+            player1.getInventory().addItem(getPlayer1Items().get(i));
+        }
+        for (int i = 0; i < this.getPlayer2Items().size(); i++) {
+            // Check that there is an item in the slot
+            player2.getInventory().addItem(getPlayer2Items().get(i));
+        }
+            
     }
 
     // getItemAmount shows the amount of item added or removed
@@ -285,18 +302,19 @@ public class TradeMenu {
             player.sendMessage("You clicked the slot at index " + info.getClickedSlot().getIndex());
             Player oppPlayer = player == player1 ? player2 : player1;
             // If the player is adding item to the slot
-            if (info.isAddingItem()) {
-                // Get the item that the player is adding
-                ItemStack addingItem = new ItemStack(info.getAddingItem());
-                // Get the amount of the item that the player is adding
-                int addingAmount = info.getItemAmount();
-                addingItem.setAmount(addingAmount);
-                // If the slot is empty, set the item in the slot to the item that the player is adding
-                if (info.getClickedSlot().getRawItem(player) == null) {
-                    info.getClickedSlot().setRawItem(oppPlayer, addingItem);
-                    info.getClickedSlot().setItem(addingItem);
-                }
-            }
+            // if (info.isAddingItem()) {
+            //     // Get the item that the player is adding
+            //     ItemStack addingItem = new ItemStack(info.getAddingItem());
+            //     // Get the amount of the item that the player is adding
+            //     int addingAmount = info.getItemAmount();
+            //     addingItem.setAmount(addingAmount);
+            //     // If the slot is empty, set the item in the slot to the item that the player is adding
+            //     if (info.getClickedSlot().getRawItem(player) == null) {
+            //         info.getClickedSlot().setRawItem(oppPlayer, addingItem);
+            //         //info.getClickedSlot().setItem(addingItem);
+            //     }
+            // }
+            ItemStack item = new ItemStack(Material.AIR);
             switch (info.getAction()) {
                 case PLACE_ALL:
                     // Get the item that the player is adding
@@ -304,30 +322,77 @@ public class TradeMenu {
                     // Get the amount of the item that the player is adding
                     int addingAmount = info.getItemAmount();
                     addingItem.setAmount(addingAmount);
-                    info.getClickedSlot().setRawItem(oppPlayer, addingItem);
+                    
+                    if (info.getClickedSlot().getRawItem(player) == null) {
+                        addingItem.setAmount(addingAmount);
+                    //info.getClickedSlot().setItem(addingItem);
+                    } else {
+                        addingItem.setAmount(addingAmount+info.getClickedSlot().getRawItem(player).getAmount());
+                    }
+                    item = addingItem;
+                    info.getClickedSlot().setRawItem(oppPlayer, item);
+                    //info.getClickedSlot().setRawItem(player, info.getClickedSlot().getRawItem(oppPlayer));
                     break;
                 case PLACE_ONE:
                     ItemStack addingItem2 = new ItemStack(info.getAddingItem());
                     // Get the amount of the item that the player is adding
                     addingItem2.setAmount(1);
                     if (info.getClickedSlot().getRawItem(player) == null) {
-                        info.getClickedSlot().setRawItem(oppPlayer, addingItem2);
+                        item = new ItemStack(addingItem2);
+                        info.getClickedSlot().setRawItem(oppPlayer, item);
                     } else {
                         info.getClickedSlot().getRawItem(oppPlayer).setAmount(Math.max(info.getClickedSlot().getRawItem(oppPlayer).getAmount() + 1,0));
+                        item = new ItemStack(info.getClickedSlot().getRawItem(oppPlayer));
                     }
+                    //info.getClickedSlot().setRawItem(player, info.getClickedSlot().getRawItem(oppPlayer));
                     break;
                 case PICKUP_ALL:
-                    info.getClickedSlot().getRawItem(oppPlayer).setAmount(0);
+                    item = new ItemStack(info.getClickedSlot().getRawItem(oppPlayer));
+                    ItemStack item2 = new ItemStack(item);
+                    item.setAmount(0);
+                    info.getClickedSlot().setRawItem(oppPlayer, item);
+                    info.getClickedSlot().setRawItem(player, item2);
                     break;
                 case PICKUP_HALF:
-                    info.getClickedSlot().getRawItem(oppPlayer).setAmount(Math.max(Math.round(info.getClickedSlot().getRawItem(oppPlayer).getAmount() / 2),0));
+                    item = new ItemStack(info.getClickedSlot().getRawItem(oppPlayer));
+                    item.setAmount(Math.max(Math.round(info.getClickedSlot().getRawItem(oppPlayer).getAmount() / 2),0));
+                    info.getClickedSlot().setRawItem(oppPlayer, item);
                     break;
                 case PICKUP_ONE:
-                    info.getClickedSlot().getRawItem(oppPlayer).setAmount(Math.max(info.getClickedSlot().getRawItem(oppPlayer).getAmount() - 1,0));
+                    item = new ItemStack(info.getClickedSlot().getRawItem(oppPlayer));
+                    item.setAmount(Math.max(info.getClickedSlot().getRawItem(oppPlayer).getAmount() - 1,0));
+                    info.getClickedSlot().setRawItem(oppPlayer, item);
+                    break;
+                case SWAP_WITH_CURSOR:
+                    ItemStack cursorItem = player.getItemOnCursor();
+                    info.getClickedSlot().setRawItem(oppPlayer, new ItemStack(cursorItem));
+                    item = new ItemStack(cursorItem);
                     break;
             }
-            info.getClickedSlot().setRawItem(player, info.getClickedSlot().getRawItem(oppPlayer));
+           // info.getClickedSlot().setItem(item);
             //info.getClickedSlot().setItem(info.getClickedSlot().setItemTemplate);
+            //menu.update();
+            // ArrayList<ItemStack> player1Items = new ArrayList<>();
+            // ArrayList<ItemStack> player2Items = new ArrayList<>();
+            // for (int i = 0; i < this.getPlayer1Slots().size(); i++) {
+            //     // Check that there is an item in the slot
+            //     if (this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()) != null) {
+            //         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 1 Slots: " + this.getPlayer1Slots().size());
+            //         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 1 Slot " + i + " : " + this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()));
+            //         player1Items.add(this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()));
+            //     }
+            // }
+            // for (int i = 0; i < this.getPlayer2Slots().size(); i++) {
+            //     // Check that there is an item in the slot
+            //     MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 2 Slots: " + this.getPlayer2Slots().size());
+            //     if (this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()) != null) {
+            //         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 2 Slot " + i + " : " + this.getPlayer1Slots().get(i).getRawItem(this.getPlayer2()));
+            //         player2Items.add(this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()));
+            //     }
+            // }
+
+            // this.setPlayer1Items(player1Items);
+            // this.setPlayer2Items(player2Items);
             // Additional functionality goes here
         });
     }

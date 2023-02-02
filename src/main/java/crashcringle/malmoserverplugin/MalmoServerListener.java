@@ -85,15 +85,8 @@ public class MalmoServerListener implements Listener {
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         // Get the player and the item they dropped.
         Player player = event.getPlayer();
-        ItemStack item = event.getItemDrop().getItemStack();
-        // If the item is a diamond, cancel the event.
-        if (item.getType() == Material.DIAMOND) {
+        if (BarterKings.barterGame.isParticipant(player))
             event.setCancelled(true);
-            // Send the player a message.
-            player.sendMessage("You can't drop diamonds!");
-        }
-        TradeMenu tradeMenu = new TradeMenu(event.getPlayer());
-        tradeMenu.display2Menu(event.getPlayer());
     }
 
    /**
@@ -108,7 +101,7 @@ public class MalmoServerListener implements Listener {
             Player target = (Player) event.getRightClicked();
             player.sendMessage(ChatColor.AQUA + "You right clicked " + target.getDisplayName());
             target.sendMessage(ChatColor.AQUA + player.getDisplayName() + " wants to trade with you!");
-            TradeController.attemptTradeRequestViaMenu(player, target);
+            BarterKings.controller.attemptTradeRequestViaMenu(player, target);
         }
     }
 

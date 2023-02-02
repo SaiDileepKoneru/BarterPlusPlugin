@@ -235,9 +235,16 @@ public class TradeRequest {
     // Method that returns a  string representation of the trade request
     public String toString() {
         String str = requester.getName() + " requested a trade with " + requested.getName() + " at " + beginTimestamp.toString();
-        // What the trade was for
-        str += " " + trade.getOfferedItemsString() + " for " + trade.getRequestedItemsString();
+        if (hasMenu()) {
+            // What the trade was for
+            str += "Offering " + trade.getOfferedItemsString() + " for " + trade.getRequestedItemsString();
+        } else {
+            str += "Offering " + trade.getOfferedAmount() + " " + trade.getOfferedItem().getType().toString() + " for " + trade.getRequestedAmount() + " " + trade.getRequestedItem().getType().toString();
+        }
+
         return str;
+
+
     }
     public TradeMenu getTradeMenu() {
         return tradeMenu;
@@ -253,6 +260,8 @@ public class TradeRequest {
 
     public void completeTradeMenu() {
         if (tradeMenu.isPlayer1Ready() && tradeMenu.isPlayer2Ready()) {
+            tradeMenu.getPlayer1Items().clear();
+            tradeMenu.getPlayer2Items().clear();
             for (int i = 0; i < tradeMenu.getPlayer1Slots().size(); i++) {
                 // Check that there is an item in the slot
                 if (tradeMenu.getPlayer1Slots().get(i).getRawItem(tradeMenu.getPlayer1()) != null) {

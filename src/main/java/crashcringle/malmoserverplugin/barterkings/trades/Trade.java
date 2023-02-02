@@ -35,6 +35,13 @@ public class Trade {
         this.requestedAmount = requestedAmount;
     }
 
+    public Trade(ItemStack offeredItemStack, ItemStack requestedItem) {
+        this.offeredItem = offeredItemStack;
+        this.offeredAmount = offeredItemStack.getAmount();
+        this.requestedItem = requestedItem;
+        this.requestedAmount = requestedItem.getAmount();
+    }
+
     public ItemStack getRequestedItem() {
         return requestedItem;
     }

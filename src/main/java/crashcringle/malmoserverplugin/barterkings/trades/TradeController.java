@@ -24,7 +24,7 @@ public class TradeController {
         incomingRequests = new HashMap<>();
     }
 
-    public static void attemptTradeRequestViaMenu(Player requester, Player requested) {
+    public void attemptTradeRequestViaMenu(Player requester, Player requested) {
         if (!hasActiveTradeRequest(requester, requested)) {
             addTradeRequest(new TradeRequest(requester, requested));
             requested.sendMessage(ChatColor.AQUA + requester.getName() + " has requested a trade with you");
@@ -36,7 +36,7 @@ public class TradeController {
             }
         }
     }
-    public static void sendTradeRequest(Player requester, Player requested, Trade trade) {
+    public void sendTradeRequest(Player requester, Player requested, Trade trade) {
         if (!hasActiveTradeRequest(requester, requested)) {
             addTradeRequest(new TradeRequest(requester, requested, trade));
             requested.sendMessage(ChatColor.AQUA + requester.getName() + " has requested a trade with you");
@@ -56,7 +56,7 @@ public class TradeController {
             tradeRequest.accept();
     }
 
-    public static void acceptRecentTrade(Player player) {
+    public void acceptRecentTrade(Player player) {
         if (incomingRequests.containsKey(player)) {
             TradeRequest request = Collections.max(incomingRequests.get(player), Comparator.comparing(TradeRequest::getBeginTime));
             acceptTradeRequest(request);
@@ -65,7 +65,7 @@ public class TradeController {
         }
     }
 
-    public static void acceptTrade(Player requested, Player requester) {
+    public void acceptTrade(Player requested, Player requester) {
         if (incomingRequests.containsKey(requested)) {
             for (TradeRequest request : incomingRequests.get(requested)) {
                 if (request.getRequester().equals(requester) && !request.isCompleted()) {
@@ -93,7 +93,7 @@ public class TradeController {
      * Denies the latest trade request to a player
      * @param player
      */
-    public static void denyRecentTrade(Player player) {
+    public void denyRecentTrade(Player player) {
 
         if (incomingRequests.containsKey(player)) {
             TradeRequest request = Collections.max(incomingRequests.get(player), Comparator.comparing(TradeRequest::getBeginTime));
@@ -108,7 +108,7 @@ public class TradeController {
      * @param requested
      * @param requester
      */
-    public static void denyTrade(Player requested, Player requester) {
+    public void denyTrade(Player requested, Player requester) {
         if (incomingRequests.containsKey(requested)) {
             for (TradeRequest request : incomingRequests.get(requested)) {
                 if (request.getRequester().equals(requester) && !request.isCompleted()) {
@@ -137,7 +137,7 @@ public class TradeController {
         }
     }
 
-    public static void cancelRecentTrade(Player player) {
+    public void cancelRecentTrade(Player player) {
         if (outgoingRequests.containsKey(player)) {
             TradeRequest request = Collections.max(outgoingRequests.get(player), Comparator.comparing(TradeRequest::getBeginTime));
             cancelTradeRequest(request);
@@ -146,7 +146,7 @@ public class TradeController {
         }
     }
 
-    public static void cancelTrade(Player requester, Player requested) {
+    public void cancelTrade(Player requester, Player requested) {
         if (outgoingRequests.containsKey(requester)) {
             for (TradeRequest request : outgoingRequests.get(requester)) {
                 if (request.getRequested().equals(requested) && !request.isCompleted()) {
@@ -232,7 +232,7 @@ public class TradeController {
     }
 
     //Method to get all the trade requests involving a player
-    public static ArrayList<TradeRequest> getAllPlayerTradeRequests(Player player) {
+    public ArrayList<TradeRequest> getAllPlayerTradeRequests(Player player) {
         ArrayList<TradeRequest> requests = new ArrayList<>();
         if (incomingRequests.containsKey(player)) {
             requests.addAll(incomingRequests.get(player));

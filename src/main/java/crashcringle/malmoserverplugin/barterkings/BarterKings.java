@@ -12,10 +12,15 @@ public class BarterKings {
 
     public static Map<Integer, MalmoTrader> traders = new HashMap<>();
     public static PlayerHandler barterGame;
+    public static TradeController controller;
 
     public BarterKings(MalmoServerPlugin plugin) {
-        new TradeController();
+        controller = new TradeController();
         barterGame = new PlayerHandler();
+    }
+    public static void startNewGame() {
+        barterGame = new PlayerHandler();
+        controller = new TradeController();
     }
 
     public static Map<Integer, MalmoTrader> getTraders() {

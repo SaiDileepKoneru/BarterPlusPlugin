@@ -22,8 +22,6 @@ import java.util.logging.Level;
 public class CommandTrade implements CommandExecutor {
 
     // TODO - END CURRENT BARTER GAME IF ONE IS IN PROGRESS
-    // TODO - Announce that a bartering game is starting and that players can join
-    // TODO - Let the player know that they need to ready up to start after joining
     /**
      * Executes the given command, returning its success.
      * <br>
@@ -58,8 +56,17 @@ public class CommandTrade implements CommandExecutor {
             } else {
                 if (args[0].equalsIgnoreCase("readyUp")) {
                     if (sender.hasPermission("malmoserverplugin.ready")) {
+                        if (BarterKings.barterGame.inProgress() ) {
+                            sender.sendMessage(ChatColor.RED + "A game is already in progress");
+                            return false;
+                        }
+
                         if (sender instanceof Player) {
                             Player player = (Player) sender;
+                            if (!BarterKings.barterGame.isParticipant(player)) {
+                                sender.sendMessage(ChatColor.RED + "You are not a participant");
+                                return false;
+                            }
                             if (args.length == 1) {
                                 if(BarterKings.barterGame.isReady(player)) {
                                     BarterKings.barterGame.unready(player);
@@ -85,10 +92,21 @@ public class CommandTrade implements CommandExecutor {
                     if (sender.hasPermission("malmoserverplugin.join")) {
                         if (sender instanceof Player) {
                             Player player = (Player) sender;
+                            if (BarterKings.barterGame.inProgress() ) {
+                                sender.sendMessage(ChatColor.RED + "A game is already in progress");
+                                return false;
+                            }
+
                             if (!BarterKings.barterGame.isParticipant(player)) {
                                 if (args.length == 1) {
+                                    if (!BarterKings.barterGame.inProgress() && BarterKings.barterGame.getParticipants().size() < 1 ) {
+                                        // Broadcast that the player is trying to start the game
+                                        BarterKings.startNewGame();
+                                        Bukkit.broadcastMessage(ChatColor.GREEN + player.getName() + " is trying to start a Barter Game! Do \"/barter join\" to join!");
+                                    }
                                     BarterKings.barterGame.addParticipant(player);
                                     sender.sendMessage(ChatColor.GREEN + "You are now a participant");
+                                    sender.sendMessage(ChatColor.GREEN + "Type \"/barter readyUp\" to ready up for the game");
                                     return true;
                                 } else {
                                     sender.sendMessage(ChatColor.RED + "Usage: /barter join");
@@ -122,7 +140,19 @@ public class CommandTrade implements CommandExecutor {
                 } else if (args[0].equalsIgnoreCase("start")) {
                     if (sender.hasPermission("malmoserverplugin.start")) {
                         if (args.length == 1) {
+                            if (BarterKings.barterGame.inProgress()) {
+                                sender.sendMessage(ChatColor.RED + "A game is already in progress");
+                                return false;
+                            }
                             BarterKings.barterGame.attemptStart();
+                            return true;
+                        } else if (args.length == 2) {
+                            try {
+                                BarterKings.barterGame.attemptStart(Integer.parseInt(args[1]));
+                            } catch (NumberFormatException e) {
+                                sender.sendMessage(ChatColor.RED + "Usage: /barter start [Time]");
+                                return false;
+                            }
                             return true;
                         } else {
                             sender.sendMessage(ChatColor.RED + "Usage: /barter start");
@@ -135,6 +165,10 @@ public class CommandTrade implements CommandExecutor {
                 } else if (args[0].equalsIgnoreCase("end")) {
                     if (sender.hasPermission("malmoserverplugin.end")) {
                         if (args.length == 1) {
+                            if (!BarterKings.barterGame.inProgress()) {
+                                sender.sendMessage(ChatColor.RED + "There is no game in progress");
+                                return false;
+                            }
                             BarterKings.barterGame.attemptEnd();
                             return true;
                         } else {
@@ -203,7 +237,7 @@ public class CommandTrade implements CommandExecutor {
                                         if (sender instanceof Player) {
                                             Player requester = (Player) sender;
                                             try {
-                                                TradeController.sendTradeRequest(requester, requested, new Trade(requester.getInventory().getItemInMainHand(),  Integer.parseInt(args[3]), new ItemStack(Material.getMaterial(args[2].toUpperCase())))) ;
+                                                BarterKings.controller.sendTradeRequest(requester, requested, new Trade(requester.getInventory().getItemInMainHand(),  Integer.parseInt(args[3]), new ItemStack(Material.getMaterial(args[2].toUpperCase())))) ;
                                             } catch (Exception e) {
                                                 e.printStackTrace();
                                                 sender.sendMessage(ChatColor.RED + "Error");
@@ -222,7 +256,7 @@ public class CommandTrade implements CommandExecutor {
                                             Player requester = (Player) sender;
                                             try {
                                                 if (requester.getInventory().containsAtLeast(new ItemStack(Material.getMaterial(args[2].toUpperCase())), Integer.parseInt(args[3]))) {
-                                                    TradeController.sendTradeRequest(requester, requested, new Trade(new ItemStack(Material.getMaterial(args[2].toUpperCase())), Integer.parseInt(args[3]), new ItemStack(Material.getMaterial(args[4].toUpperCase())), Integer.parseInt(args[5])));
+                                                    BarterKings.controller.sendTradeRequest(requester, requested, new Trade(new ItemStack(Material.getMaterial(args[2].toUpperCase())), Integer.parseInt(args[3]), new ItemStack(Material.getMaterial(args[4].toUpperCase())), Integer.parseInt(args[5])));
                                                 } else {
                                                     requester.sendMessage(ChatColor.RED + "You do not have enough of that item to trade");
                                                 }
@@ -250,14 +284,14 @@ public class CommandTrade implements CommandExecutor {
                                     if (requester != sender) {
                                         if (sender instanceof Player) {
                                             Player requested = (Player) sender;
-                                            TradeController.denyTrade(requested, requester);
+                                            BarterKings.controller.denyTrade(requested, requester);
                                         }
                                     }
                                 }
                             }
                         } else {
                             if (sender instanceof Player) {
-                                TradeController.denyRecentTrade((Player) sender);
+                                BarterKings.controller.denyRecentTrade((Player) sender);
                             }
 
                         }
@@ -274,14 +308,14 @@ public class CommandTrade implements CommandExecutor {
                                     if (requester != sender) {
                                         if (sender instanceof Player) {
                                             Player requested = (Player) sender;
-                                            TradeController.acceptTrade(requested, requester);
+                                            BarterKings.controller.acceptTrade(requested, requester);
                                         }
                                     }
                                 }
                             }
                         } else {
                             if (sender instanceof Player) {
-                                TradeController.acceptRecentTrade((Player) sender);
+                                BarterKings.controller.acceptRecentTrade((Player) sender);
                             }
                         }
                     }
@@ -295,14 +329,14 @@ public class CommandTrade implements CommandExecutor {
                                     if (requested != sender) {
                                         if (sender instanceof Player) {
                                             Player requester = (Player) sender;
-                                            TradeController.cancelTrade(requester, requested);
+                                            BarterKings.controller.cancelTrade(requester, requested);
                                         }
                                     }
                                 }
                             }
                         } else {
                             if (sender instanceof Player) {
-                                TradeController.cancelRecentTrade((Player) sender);
+                                BarterKings.controller.cancelRecentTrade((Player) sender);
                             }
                         }
                     }
@@ -311,7 +345,7 @@ public class CommandTrade implements CommandExecutor {
                     if (sender.hasPermission("malmoserverplugin.trade.list")) {
                         if (sender instanceof Player) {
                             Player player = (Player) sender;
-                            List<TradeRequest> trades = TradeController.getAllPlayerTradeRequests(player);
+                            List<TradeRequest> trades = BarterKings.controller.getAllPlayerTradeRequests(player);
                             if (trades.size() > 0) {
                                 player.sendMessage(ChatColor.BLUE + "Trades:");
                                 for (TradeRequest traderequest : trades) {

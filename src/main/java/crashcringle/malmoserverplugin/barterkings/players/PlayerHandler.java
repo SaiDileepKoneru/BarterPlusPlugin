@@ -13,7 +13,10 @@ import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PlayerHandler {
 
@@ -31,6 +34,10 @@ public class PlayerHandler {
     private ArrayList<ItemStack> tier1Items = new ArrayList<>();
     private ArrayList<ItemStack> tier2Items = new ArrayList<>();
     private ArrayList<ItemStack> tier3Items = new ArrayList<>();
+    Map<Participant, Integer> gameScores = new HashMap<>();
+
+    Participant winner;
+    boolean inprogress = false;
 
     public void setParticipants(List<Participant> participants) {
         PlayerHandler.participants = participants;
@@ -38,12 +45,29 @@ public class PlayerHandler {
 
     public void Checkup() {
         if (allReady()) {
+            inprogress = true;
+            Bukkit.broadcastMessage(ChatColor.YELLOW + "The Barter Game has begun!");
             setUpProfessions();
             setUpParticipants();
             findAllActiveTierItems();
             distributeItems();
             teleportPlayers();
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt begin 45m barterKings white &6&lBarter Kings! &e&l<minutes> &6minutes and &e&l<seconds> &6seconds left!");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt begin 30m barterKings white &6&lBarter Kings! &e&l<minutes> &6minutes and &e&l<seconds> &6seconds left!");
+        } else {
+            Bukkit.broadcastMessage(ChatColor.YELLOW + "Not all players are ready!");
+        }
+
+    }
+    public void Checkup(int minutes) {
+        if (allReady()) {
+            inprogress = true;
+            Bukkit.broadcastMessage(ChatColor.YELLOW + "The Barter Game has begun!");
+            setUpProfessions();
+            setUpParticipants();
+            findAllActiveTierItems();
+            distributeItems();
+            teleportPlayers();
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt begin "+minutes+"m barterKings white &6&lBarter Kings! &e&l<minutes> &6minutes and &e&l<seconds> &6seconds left!");
         } else {
             Bukkit.broadcastMessage(ChatColor.YELLOW + "Not all players are ready!");
         }
@@ -68,7 +92,6 @@ public class PlayerHandler {
     public Scoreboard createScoreboard(Profession profession) {
         Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         Objective objective = scoreboard.registerNewObjective("Trading Goals", "dummy");
-
         objective.setDisplayName(ChatColor.GOLD + "Role: " + ChatColor.YELLOW + profession.getName());
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         Score score1 = objective.getScore(ChatColor.GOLD + "Trading Goals + Amounts in World!");
@@ -99,17 +122,43 @@ public class PlayerHandler {
 
 
 
+    public boolean inProgress() {
+        return inprogress;
+    }
     public void addParticipant(Player player) {
         getParticipants().add(new Participant(player));
     }
 
     public void attemptStart() {
-        Checkup();
+        if (!inprogress)
+            Checkup();
+        else
+            Bukkit.broadcastMessage(ChatColor.YELLOW + "The Barter Game is already in progress!");
+    }
+    public void attemptStart(int minutes) {
+        if (!inprogress)
+            Checkup(minutes);
+        else
+            Bukkit.broadcastMessage(ChatColor.YELLOW + "The Barter Game is already in progress!");
     }
     public void attemptEnd() {
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt stop barterKings");
-        getParticipants().clear();
+        for (Participant participant : getParticipants()) {
+            participant.getPlayer().removeScoreboardTag("Trading Goals");
+            participant.getPlayer().removeScoreboardTag(ChatColor.GOLD + "Role: " + ChatColor.YELLOW + participant.getProfession().getName());
+        }
+        Bukkit.broadcastMessage(ChatColor.GOLD + "Barter Game has ended!");
+        calculateScores();
+        Bukkit.broadcastMessage(ChatColor.GOLD + "The winner is " + ChatColor.YELLOW + winner.getPlayer().getName() + ChatColor.GOLD + " with a score of " + ChatColor.YELLOW + winner.getScore());
+        // The participant list should be sorted by score so we can print out the rankings
+        for (int i = 1; i < getParticipants().size(); i++) {
+            Participant participant = getParticipants().get(i);
+            Bukkit.broadcastMessage(ChatColor.GOLD + "Rank " + ChatColor.YELLOW + (i + 1) + ChatColor.GOLD + " is " + ChatColor.YELLOW + participant.getPlayer().getName() + ChatColor.GOLD + " with a score of " + ChatColor.YELLOW + participant.getScore());
+        }
+        inprogress = false;
+        
     }
+    
     public void removeParticipant(Player player) {
         getParticipants().remove(new Participant(player));
     }
@@ -381,6 +430,28 @@ public class PlayerHandler {
             default:
                 return getFarmer();
         }
+    }
+
+    /**
+     * This method will calculate the scores of the participants
+     * and will return the winner
+     * @return
+     */
+    public void calculateScores() {
+
+        for (Participant user : getParticipants()) {
+            user.calculateScore();
+        }
+        // Compare the scores of the participants to find the winner
+        Participant winner = getParticipants().get(0);
+        for (Participant user : getParticipants()) {
+            if (user.getScore() > winner.getScore()) {
+                winner = user;
+            }
+        }
+
+        // Create a sorted list of participants based on their score
+        getParticipants().sort(Comparator.comparing(Participant::getScore).reversed());
     }
 
     public Profession getFarmer() {
