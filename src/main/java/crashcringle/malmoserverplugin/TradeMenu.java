@@ -75,7 +75,7 @@ public class TradeMenu {
         
         slot.setClickHandler((player, info) -> {
             tradeRequest.setCancelled(true);
-            returnItems();
+            //returnItems();
             this.menu.close();
         });
 
@@ -235,43 +235,29 @@ public class TradeMenu {
     }
     public void addCloseHandler(Menu menu) {
         menu.setCloseHandler((player, menu1) -> {
-            if (!this.isPlayer1Ready() || !this.isPlayer2Ready()) {
-                returnItems();
-                menu.close(player1);
-                menu.close(player2);
-            }
+            returnItems(player);
+            menu.close(player1);
+            menu.close(player2);
+            MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " has closed Menu");
+            MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " has cancelled trade with " + (player == player1 ? player2.getName() : player1.getName()));
             player.sendMessage("You just closed the menu...");
         });
     }
 
-    public void returnItems() {
+    public void returnItems(Player player) {
                     // ArrayList<ItemStack> player1Items = new ArrayList<>();
             // ArrayList<ItemStack> player2Items = new ArrayList<>();
-        for (int i = 0; i < this.getPlayer1Slots().size(); i++) {
-            // Check that there is an item in the slot
-            if (this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()) != null) {
-                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 1 Slots: " + this.getPlayer1Slots().size());
-                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 1 Slot " + i + " : " + this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()));
-                player1Items.add(this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()));
+        if (player == player1) {
+            for (int i = 0; i < this.getPlayer1Items().size(); i++) {
+                // Check that there is an item in the slot
+                player1.getInventory().addItem(getPlayer1Items().get(i));
+            }
+        } else {
+            for (int i = 0; i < this.getPlayer2Items().size(); i++) {
+                // Check that there is an item in the slot
+                player2.getInventory().addItem(getPlayer2Items().get(i));
             }
         }
-        for (int i = 0; i < this.getPlayer2Slots().size(); i++) {
-            // Check that there is an item in the slot
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 2 Slots: " + this.getPlayer2Slots().size());
-            if (this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()) != null) {
-                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 2 Slot " + i + " : " + this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()));
-                player2Items.add(this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()));
-            }
-        }
-        for (int i = 0; i < this.getPlayer1Items().size(); i++) {
-            // Check that there is an item in the slot
-            player1.getInventory().addItem(getPlayer1Items().get(i));
-        }
-        for (int i = 0; i < this.getPlayer2Items().size(); i++) {
-            // Check that there is an item in the slot
-            player2.getInventory().addItem(getPlayer2Items().get(i));
-        }
-            
     }
 
     // getItemAmount shows the amount of item added or removed
@@ -299,7 +285,7 @@ public class TradeMenu {
             MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Cursor Item : " + player.getItemOnCursor());
 
 
-            player.sendMessage("You clicked the slot at index " + info.getClickedSlot().getIndex());
+            //player.sendMessage("You clicked the slot at index " + info.getClickedSlot().getIndex());
             Player oppPlayer = player == player1 ? player2 : player1;
             // If the player is adding item to the slot
             // if (info.isAddingItem()) {
@@ -372,27 +358,33 @@ public class TradeMenu {
            // info.getClickedSlot().setItem(item);
             //info.getClickedSlot().setItem(info.getClickedSlot().setItemTemplate);
             //menu.update();
-            // ArrayList<ItemStack> player1Items = new ArrayList<>();
-            // ArrayList<ItemStack> player2Items = new ArrayList<>();
-            // for (int i = 0; i < this.getPlayer1Slots().size(); i++) {
-            //     // Check that there is an item in the slot
-            //     if (this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()) != null) {
-            //         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 1 Slots: " + this.getPlayer1Slots().size());
-            //         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 1 Slot " + i + " : " + this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()));
-            //         player1Items.add(this.getPlayer1Slots().get(i).getRawItem(this.getPlayer1()));
-            //     }
-            // }
-            // for (int i = 0; i < this.getPlayer2Slots().size(); i++) {
-            //     // Check that there is an item in the slot
-            //     MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 2 Slots: " + this.getPlayer2Slots().size());
-            //     if (this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()) != null) {
-            //         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 2 Slot " + i + " : " + this.getPlayer1Slots().get(i).getRawItem(this.getPlayer2()));
-            //         player2Items.add(this.getPlayer2Slots().get(i).getRawItem(this.getPlayer2()));
-            //     }
-            // }
+            ArrayList<ItemStack> player1Items = new ArrayList<>();
+            ArrayList<ItemStack> player2Items = new ArrayList<>();
+            if (player == player1) {
+                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 1 Slots: " + this.getPlayer1Slots().size());
+                for (int i = 0; i < this.getPlayer1Slots().size(); i++) {
+                    // Check that there is an item in the slot
+                    if (this.getPlayer1Slots().get(i).getRawItem(oppPlayer) != null) {
+                        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 1 Slot " + i + " : " + this.getPlayer1Slots().get(i).getRawItem(oppPlayer));
+                        player1Items.add(this.getPlayer1Slots().get(i).getRawItem(oppPlayer));
+                    }
+                    this.setPlayer1Items(player1Items);
+                }
+            } else {
+                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 2 Slots: " + this.getPlayer2Slots().size());
+                for (int i = 0; i < this.getPlayer2Slots().size(); i++) {
+                    // Check that there is an item in the slot
+                    if (this.getPlayer2Slots().get(i).getRawItem(oppPlayer) != null) {
+                        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player 2 Slot " + i + " : " + this.getPlayer2Slots().get(i).getRawItem(oppPlayer));
+                        player2Items.add(this.getPlayer2Slots().get(i).getRawItem(oppPlayer));
+                    }
+                }
+                this.setPlayer2Items(player2Items);
+            }
 
-            // this.setPlayer1Items(player1Items);
-            // this.setPlayer2Items(player2Items);
+
+
+
             // Additional functionality goes here
         });
     }

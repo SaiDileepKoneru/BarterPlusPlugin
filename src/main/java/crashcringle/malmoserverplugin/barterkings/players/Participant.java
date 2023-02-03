@@ -10,10 +10,11 @@ public class Participant  {
     Profession profession;
     Player player;
     int score = 0;
-
+    Player clickedPlayer;
     boolean ready;
     public Participant(Player player) {
         this.player = player;
+        this.clickedPlayer = player;
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Participant created for " + player.getName());
     }
 
@@ -39,6 +40,14 @@ public class Participant  {
 
     public void setPlayer(Player player) {
         this.player = player;
+    }
+
+    public Player getClickedPlayer() {
+        return clickedPlayer;
+    }
+
+    public void setClickedPlayer(Player player) {
+        this.clickedPlayer = player;
     }
 
     public boolean isReady() {

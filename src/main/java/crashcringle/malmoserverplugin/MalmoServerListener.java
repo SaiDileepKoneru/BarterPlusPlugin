@@ -2,6 +2,7 @@ package crashcringle.malmoserverplugin;
 
 import crashcringle.malmoserverplugin.api.MalmoTraderInteractEvent;
 import crashcringle.malmoserverplugin.barterkings.BarterKings;
+import crashcringle.malmoserverplugin.barterkings.players.Participant;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
 import crashcringle.malmoserverplugin.barterkings.villagers.MalmoTrader;
 import crashcringle.malmoserverplugin.data.Database;
@@ -99,9 +100,21 @@ public class MalmoServerListener implements Listener {
         if (event.getRightClicked() instanceof Player) {
             Player player = event.getPlayer();
             Player target = (Player) event.getRightClicked();
-            player.sendMessage(ChatColor.AQUA + "You right clicked " + target.getDisplayName());
-            target.sendMessage(ChatColor.AQUA + player.getDisplayName() + " wants to trade with you!");
-            BarterKings.controller.attemptTradeRequestViaMenu(player, target);
+
+            if (BarterKings.barterGame.isParticipant(player)) {
+                Participant participant = BarterKings.barterGame.getParticipant(player);
+                Participant otherParticipant = BarterKings.barterGame.getParticipant(target);
+                participant.setClickedPlayer(target);
+                if (participant.getClickedPlayer() == otherParticipant.getPlayer() && otherParticipant.getClickedPlayer() == participant.getPlayer()) {
+                    BarterKings.controller.attemptTradeRequestViaMenu(player, target);
+                } else {
+
+                    player.sendMessage(ChatColor.AQUA + "You asked to trade with " + target.getDisplayName());
+                    target.sendMessage(ChatColor.AQUA + player.getDisplayName() + " wants to trade with you!");
+                }
+            } else {
+                player.sendMessage("You're not in a game right now!");
+            }
         }
     }
 

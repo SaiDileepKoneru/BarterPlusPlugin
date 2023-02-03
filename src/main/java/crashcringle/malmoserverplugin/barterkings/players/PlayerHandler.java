@@ -94,7 +94,7 @@ public class PlayerHandler {
         Objective objective = scoreboard.registerNewObjective("Trading Goals", "dummy");
         objective.setDisplayName(ChatColor.GOLD + "Role: " + ChatColor.YELLOW + profession.getName());
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-        Score score1 = objective.getScore(ChatColor.GOLD + "Trading Goals + Amounts in World!");
+        Score score1 = objective.getScore(ChatColor.GOLD + "" + ChatColor.BOLD + "Trading Goals");
         score1.setScore(1);
         // Score score2 = objective.getScore(ChatColor.GOLD + "Collect them all!");
 
@@ -280,7 +280,7 @@ public class PlayerHandler {
         for (ItemStack item : getTier3Items()) {
             int amt = 3;
             while (amt > 0) {
-                int amtToGive = amt != 1 ? ((int) (Math.random() * amt)) : 1;
+                int amtToGive = amt >= 2 ? ((int) (Math.random() * amt)) : 1;
                 randomIndex =  (int) (Math.random() * getParticipants().size());
                 item.setAmount(amtToGive);
                 getParticipants().get(randomIndex).getPlayer().getInventory().addItem(item);

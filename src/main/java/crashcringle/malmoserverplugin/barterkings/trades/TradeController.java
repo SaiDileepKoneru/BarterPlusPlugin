@@ -1,5 +1,9 @@
 package crashcringle.malmoserverplugin.barterkings.trades;
 
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -39,13 +43,35 @@ public class TradeController {
     public void sendTradeRequest(Player requester, Player requested, Trade trade) {
         if (!hasActiveTradeRequest(requester, requested)) {
             addTradeRequest(new TradeRequest(requester, requested, trade));
-            requested.sendMessage(ChatColor.AQUA + requester.getName() + " has requested a trade with you");
+            HoverEvent acceptHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GREEN + "Click to Accept!").create());
+            HoverEvent denyHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.RED + "Click to Deny").create());
+            HoverEvent cancelHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.RED + "Click to Cancel").create());
+            ClickEvent acceptClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/barter accept "+requester.getName());
+            ClickEvent denyClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/barter deny "+requester.getName());
+            ClickEvent cancelClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/barter cancel "+requester.getName());
+
+            TextComponent message = new TextComponent(ChatColor.AQUA + requester.getName() + " has requested a trade with you");
+            message.setHoverEvent(acceptHover);
+            message.setClickEvent(acceptClick);
+            requested.spigot().sendMessage(message);
             requested.sendMessage(ChatColor.GREEN + "They want to trade " + trade.getOfferString());
-            requested.sendMessage(ChatColor.AQUA + "Type /barter accept " + ChatColor.BOLD + requester.getName() + ChatColor.AQUA + " to accept the trade");
-            requested.sendMessage(ChatColor.RED + "Type /barter deny " + ChatColor.BOLD + requester.getName() + ChatColor.RED + " to deny the trade");
+
+            message = new TextComponent(ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Click Here" + ChatColor.GREEN  + " or Type /barter accept " + ChatColor.BOLD + requester.getName() + ChatColor.GREEN + " to accept the trade");
+            message.setHoverEvent(acceptHover);
+            message.setClickEvent(acceptClick);
+            requested.spigot().sendMessage(message);
+
+            message = new TextComponent(ChatColor.RED + "" + ChatColor.UNDERLINE + "Click Here" + ChatColor.RED + " or Type /barter deny " + ChatColor.BOLD + requester.getName() + ChatColor.RED + " to deny the trade");
+            message.setHoverEvent(denyHover);
+            message.setClickEvent(denyClick);
+            requested.spigot().sendMessage(message);
+
             requester.sendMessage(ChatColor.AQUA + "You have requested a trade with " + ChatColor.BOLD + requested.getName());
             requester.sendMessage(ChatColor.GREEN + "You are trading " + trade.getOfferedString());
-            requester.sendMessage(ChatColor.RED + "Type /barter cancel " + ChatColor.BOLD + requested.getName() + ChatColor.RED + " to cancel the trade");
+            message = new TextComponent(ChatColor.RED + "" + ChatColor.UNDERLINE + "Click Here" + ChatColor.RED +  "Type /barter cancel " + ChatColor.BOLD + requested.getName() + ChatColor.RED + " to cancel the trade");
+            message.setHoverEvent(cancelHover);
+            message.setClickEvent(cancelClick);
+            requester.spigot().sendMessage(message);
         } else {
             requester.sendMessage(ChatColor.DARK_RED + "You have already requested an active trade with " + requested.getName());
         }
