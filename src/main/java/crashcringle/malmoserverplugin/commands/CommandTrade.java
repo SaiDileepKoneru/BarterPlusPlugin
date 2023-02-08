@@ -226,7 +226,22 @@ public class CommandTrade implements CommandExecutor {
                         }
                     }
                     return true;
-                } else if (args[0].equalsIgnoreCase("trade")) {
+                }  else if (args[0].equalsIgnoreCase("score")) {
+                    if (sender.hasPermission("malmoserverplugin.score")) {
+                        if (sender instanceof Player) {
+                            Player player = (Player) sender;
+                            if (BarterKings.barterGame.isParticipant(player)) {
+                                player.sendMessage(ChatColor.GRAY + "Your current score is " + BarterKings.barterGame.getParticipant(player).getScore());
+                                return true;
+                            } else {
+                                player.sendMessage(ChatColor.RED + "You are not in the game");
+                                return false;
+                            }
+                        }
+                    }
+                    
+                }
+                else if (args[0].equalsIgnoreCase("trade")) {
                     if (sender.hasPermission("malmoserverplugin.trade.request")) {
                         // Trade where only the item requested is specified. The item offered is the item in the player's hand
                         if (args.length == 4) {

@@ -443,15 +443,16 @@ public class PlayerHandler {
             user.calculateScore();
         }
         // Compare the scores of the participants to find the winner
-        Participant winner = getParticipants().get(0);
-        for (Participant user : getParticipants()) {
-            if (user.getScore() > winner.getScore()) {
-                winner = user;
-            }
-        }
+        // Participant winner = getParticipants().get(0);
+        // for (Participant user : getParticipants()) {
+        //     if (user.getScore() > winner.getScore()) {
+        //         winner = user;
+        //     }
+        // }
+                // Create a sorted list of participants based on their score
 
-        // Create a sorted list of participants based on their score
         getParticipants().sort(Comparator.comparing(Participant::getScore).reversed());
+        winner = getParticipants().get(0);
     }
 
     public Profession getFarmer() {

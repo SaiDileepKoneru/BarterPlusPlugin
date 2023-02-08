@@ -68,7 +68,7 @@ public class TradeController {
 
             requester.sendMessage(ChatColor.AQUA + "You have requested a trade with " + ChatColor.BOLD + requested.getName());
             requester.sendMessage(ChatColor.GREEN + "You are trading " + trade.getOfferedString());
-            message = new TextComponent(ChatColor.RED + "" + ChatColor.UNDERLINE + "Click Here" + ChatColor.RED +  "Type /barter cancel " + ChatColor.BOLD + requested.getName() + ChatColor.RED + " to cancel the trade");
+            message = new TextComponent(ChatColor.RED + "" + ChatColor.UNDERLINE + "Click Here " + ChatColor.RED +  "or type /barter cancel " + ChatColor.BOLD + requested.getName() + ChatColor.RED + " to cancel the trade");
             message.setHoverEvent(cancelHover);
             message.setClickEvent(cancelClick);
             requester.spigot().sendMessage(message);

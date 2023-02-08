@@ -88,6 +88,7 @@ public class Participant  {
             }
         }
         setScore(score);
+        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Score for " + getPlayer().getName() + " is " + score);
     }
 
 
