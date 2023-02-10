@@ -142,11 +142,6 @@ public class PlayerHandler {
             Bukkit.broadcastMessage(ChatColor.YELLOW + "The Barter Game is already in progress!");
     }
     public void attemptEnd() {
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt stop barterKings");
-        for (Participant participant : getParticipants()) {
-            participant.getPlayer().removeScoreboardTag("Trading Goals");
-            participant.getPlayer().removeScoreboardTag(ChatColor.GOLD + "Role: " + ChatColor.YELLOW + participant.getProfession().getName());
-        }
         Bukkit.broadcastMessage(ChatColor.GOLD + "Barter Game has ended!");
         calculateScores();
         Bukkit.broadcastMessage(ChatColor.GOLD + "The winner is " + ChatColor.YELLOW + winner.getPlayer().getName() + ChatColor.GOLD + " with a score of " + ChatColor.YELLOW + winner.getScore());
@@ -154,6 +149,15 @@ public class PlayerHandler {
         for (int i = 1; i < getParticipants().size(); i++) {
             Participant participant = getParticipants().get(i);
             Bukkit.broadcastMessage(ChatColor.GOLD + "Rank " + ChatColor.YELLOW + (i + 1) + ChatColor.GOLD + " is " + ChatColor.YELLOW + participant.getPlayer().getName() + ChatColor.GOLD + " with a score of " + ChatColor.YELLOW + participant.getScore());
+        }
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt end barterKings");
+        for (Participant participant : getParticipants()) {
+            try {
+                participant.getPlayer().getScoreboard().getObjective("Trading Goals").unregister();;
+                participant.getPlayer().getInventory().clear();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         inprogress = false;
         

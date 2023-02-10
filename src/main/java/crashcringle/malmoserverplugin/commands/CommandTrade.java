@@ -231,7 +231,7 @@ public class CommandTrade implements CommandExecutor {
                         if (sender instanceof Player) {
                             Player player = (Player) sender;
                             if (BarterKings.barterGame.isParticipant(player)) {
-                                player.sendMessage(ChatColor.GRAY + "Your current score is " + BarterKings.barterGame.getParticipant(player).getScore());
+                                player.sendMessage(ChatColor.GRAY + "Your current score is " + BarterKings.barterGame.getParticipant(player).getCalculatedScore());
                                 return true;
                             } else {
                                 player.sendMessage(ChatColor.RED + "You are not in the game");
