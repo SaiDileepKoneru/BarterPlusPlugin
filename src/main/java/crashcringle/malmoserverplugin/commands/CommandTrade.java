@@ -39,11 +39,14 @@ public class CommandTrade implements CommandExecutor {
         if (cmd.getName().equalsIgnoreCase("barter")) {
             if (args.length == 0) {
                 if (sender.hasPermission("malmoserverplugin.help")) {
+                    sender.sendMessage(ChatColor.GREEN + "Right click a player to initiate a trade with them!");
                     sender.sendMessage(ChatColor.GRAY + "Commands:");
-                    sender.sendMessage(ChatColor.GREEN + "/barter trade <player> <offeredItem> <amount> <requestedItem> <amount> - Request a trade with a player");
+                    sender.sendMessage(ChatColor.GREEN + "/barter trade <player> <Item You wish to Offer> <amount> <Item You're Requesting> <amount> - Request a trade with a player");
+                    sender.sendMessage(ChatColor.GREEN + "/barter trade <player> <Item You're Requesting> <amount> - Request a trade with a player offering the item in your hand");
                     sender.sendMessage(ChatColor.GREEN + "/barter accept [player] - Accept a trade request from a player");
                     sender.sendMessage(ChatColor.GREEN + "/barter deny [player] - Deny a trade request from a player");
                     sender.sendMessage(ChatColor.GREEN + "/barter cancel [player] - Cancel a trade request to a player");
+                    sender.sendMessage(ChatColor.GREEN + "/barter list - List all trade requests");
                     sender.sendMessage(ChatColor.GREEN + "/barter openTrade <player> - Opens an insecure trade with a player");
                     sender.sendMessage(ChatColor.GREEN + "/help - Display this help message");
                     sender.sendMessage(ChatColor.GREEN + "/barter readyUp - Ready up for the game");
@@ -105,6 +108,7 @@ public class CommandTrade implements CommandExecutor {
                                         Bukkit.broadcastMessage(ChatColor.GREEN + player.getName() + " is trying to start a Barter Game! Do \"/barter join\" to join!");
                                     }
                                     BarterKings.barterGame.addParticipant(player);
+                                    BarterKings.barterGame.readyUp(player);
                                     sender.sendMessage(ChatColor.GREEN + "You are now a participant");
                                     sender.sendMessage(ChatColor.GREEN + "Type \"/barter readyUp\" to ready up for the game");
                                     return true;
@@ -285,7 +289,8 @@ public class CommandTrade implements CommandExecutor {
                                 }
                             }
                         } else {
-                            sender.sendMessage(ChatColor.RED + "You must specify a player to trade with, the item you want to trade, the amount of that item you want to trade, the item you want to receive, and the amount of that item you want to receive");
+                            sender.sendMessage(ChatColor.RED + "/barter trade <player> <Item You wish to Offer> <amount> <Item You're Requesting> <amount>");
+                            sender.sendMessage(ChatColor.RED + "You must specify a player to trade with, the item you want to offer, the amount of that item, the item you want to receive, and the amount of that item you want to receive");
                         }
 
                     }
@@ -364,7 +369,8 @@ public class CommandTrade implements CommandExecutor {
                             if (trades.size() > 0) {
                                 player.sendMessage(ChatColor.BLUE + "Trades:");
                                 for (TradeRequest traderequest : trades) {
-                                    player.sendMessage(ChatColor.BLUE+ traderequest.toString());
+                                    if (traderequest.getTrade() != null)
+                                        player.sendMessage(ChatColor.BLUE+ traderequest.toString());
                                 }
                             } else {
                                 player.sendMessage(ChatColor.RED + "You have no trades");

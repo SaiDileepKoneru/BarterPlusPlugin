@@ -4,6 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.hibernate.SessionFactory;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
 import crashcringle.malmoserverplugin.TradeMenu;
@@ -35,7 +36,8 @@ public class TradeRequest {
         this.requested = requested;
         this.trade = trade;
         this.beginTimestamp = new Timestamp(System.currentTimeMillis());
-        MalmoServerPlugin.inst().getLogger().log(Level.INFO, requester.getName() + " has requested a trade with " + requested.getName());
+        this.requestID = requester.getName() + requested.getName() + beginTimestamp.getTime();
+        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "New Trade via Cmd: " + requestID + "| " + requester.getName() + "---> " + requested.getName() + ": " + trade.getOfferString());
         this.requestID = requester.getName() + requested.getName() + beginTimestamp.toString();
     }
 
@@ -43,8 +45,8 @@ public class TradeRequest {
         this.requester = requester;
         this.requested = requested;
         this.beginTimestamp = new Timestamp(System.currentTimeMillis());
-        this.requestID = requester.getName() + requested.getName() + beginTimestamp.toString();
-        MalmoServerPlugin.inst().getLogger().log(Level.INFO, requester.getName() + " has requested a trade with " + requested.getName());
+        this.requestID = requester.getName() + requested.getName() + beginTimestamp.getTime();
+        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "New Trade via Menu: " + requestID + "| " + requester.getName() + "---> " + requested.getName());
         this.createTradeMenu();
 
     }
@@ -89,9 +91,9 @@ public class TradeRequest {
     public void setAccepted(boolean accepted) {
         this.accepted = accepted;
         if (accepted) {
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, requested.getName() + " has accepted a trade with " + requester.getName());
+            MalmoServerPlugin.inst().getLogger().log(Level.INFO, requested.getName() + " has accepted a tradeRequest: " + requestID +" with " + requester.getName());
         } else {
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, requested.getName() + " has denied a trade with " + requester.getName());
+            MalmoServerPlugin.inst().getLogger().log(Level.INFO, requested.getName() + " has denied a tradeRequest: " + requestID +" with " + requester.getName());
         }
         this.completed = true;
     }
@@ -104,7 +106,7 @@ public class TradeRequest {
         this.completed = completed;
         if (completed) {
             requestStatus = accepted ? RequestStatus.ACCEPTED : cancelled ? RequestStatus.CANCELLED : RequestStatus.DECLINED;
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, requester.getName() + " has successfully completed a trade with " + requested.getName());
+            MalmoServerPlugin.inst().getLogger().log(Level.INFO, requester.getName() + " has successfully completed tradeRequest: " + requestID + " with " + requested.getName() + " for: " + trade.getOfferString());
             this.finishedTimestamp = new Timestamp(System.currentTimeMillis());
         }
     }
@@ -237,9 +239,9 @@ public class TradeRequest {
         String str = requester.getName() + " requested a trade with " + requested.getName() + " at " + beginTimestamp.toString();
         if (hasMenu()) {
             // What the trade was for
-            str += "Offering " + trade.getOfferedItemsString() + " for " + trade.getRequestedItemsString();
+            str += " Offering " + trade.getOfferedItemsString() + " for " + trade.getRequestedItemsString();
         } else {
-            str += "Offering " + trade.getOfferedAmount() + " " + trade.getOfferedItem().getType().toString() + " for " + trade.getRequestedAmount() + " " + trade.getRequestedItem().getType().toString();
+            str += " Offering " + trade.getOfferedAmount() + " " + trade.getOfferedItem().getType().toString() + " for " + trade.getRequestedAmount() + " " + trade.getRequestedItem().getType().toString();
         }
 
         return str;

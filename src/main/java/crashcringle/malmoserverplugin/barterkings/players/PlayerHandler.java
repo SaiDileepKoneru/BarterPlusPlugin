@@ -97,16 +97,21 @@ public class PlayerHandler {
         Score score1 = objective.getScore(ChatColor.GOLD + "" + ChatColor.BOLD + "Trading Goals");
         score1.setScore(1);
         // Score score2 = objective.getScore(ChatColor.GOLD + "Collect them all!");
-
+        Score score2 = objective.getScore(ChatColor.GOLD + "Tier 1");
+        score1.setScore(0);
         for (ItemStack item : profession.getTier1Items()) {
             Score score = objective.getScore(ChatColor.GREEN + fm(item.getType()) + " " + ChatColor.YELLOW + "x20" );
             score.setScore(0);
 
         }
+        Score score3 = objective.getScore(ChatColor.GOLD + "Tier 2");
+        score1.setScore(1);
         for (ItemStack item : profession.getTier2Items()) {
             Score score = objective.getScore(ChatColor.DARK_GREEN + fm(item.getType()) + " " + ChatColor.YELLOW + "x10" );
             score.setScore(0);
         }
+        Score score4 = objective.getScore(ChatColor.GOLD + "Tier 3");
+        score1.setScore(0);
         for (ItemStack item : profession.getTier3Items()) {
             Score score = objective.getScore(ChatColor.AQUA + fm(item.getType()) + " " + ChatColor.YELLOW + "x3" );
             score.setScore(0);
@@ -142,6 +147,7 @@ public class PlayerHandler {
             Bukkit.broadcastMessage(ChatColor.YELLOW + "The Barter Game is already in progress!");
     }
     public void attemptEnd() {
+
         Bukkit.broadcastMessage(ChatColor.GOLD + "Barter Game has ended!");
         calculateScores();
         Bukkit.broadcastMessage(ChatColor.GOLD + "The winner is " + ChatColor.YELLOW + winner.getPlayer().getName() + ChatColor.GOLD + " with a score of " + ChatColor.YELLOW + winner.getScore());
@@ -160,6 +166,7 @@ public class PlayerHandler {
             }
         }
         inprogress = false;
+        getParticipants().clear();
         
     }
     

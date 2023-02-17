@@ -37,8 +37,10 @@ public class TradeMenu {
     Player player2;
     boolean player1Ready = false;
     boolean player2Ready = false;
+    TradeRequest rq;
 
     public TradeMenu(Player player1, Player player2, TradeRequest tradeRequest) {
+        rq = tradeRequest;
         this.player1 = player1;
         this.player2 = player2;
         menu = createMenu();
@@ -235,11 +237,17 @@ public class TradeMenu {
     }
     public void addCloseHandler(Menu menu) {
         menu.setCloseHandler((player, menu1) -> {
-            returnItems(player);
-            menu.close(player1);
-            menu.close(player2);
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " has closed Menu");
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " has cancelled trade with " + (player == player1 ? player2.getName() : player1.getName()));
+            if (!(player1Ready && player2Ready)) {
+                returnItems(player);
+                menu.close(player1);
+                menu.close(player2);
+                MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " has closed Menu");
+                MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " has cancelled trade with " + (player == player1 ? player2.getName() : player1.getName()));
+                if (rq != null) {
+                    rq.setAccepted(false);
+                    rq.setCompleted(true);
+                }
+            }
             player.sendMessage("You just closed the menu...");
         });
     }

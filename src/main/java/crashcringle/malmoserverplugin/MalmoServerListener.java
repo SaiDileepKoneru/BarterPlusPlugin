@@ -108,14 +108,19 @@ public class MalmoServerListener implements Listener {
                 if (participant.getClickedPlayer() == otherParticipant.getPlayer() && otherParticipant.getClickedPlayer() == participant.getPlayer()) {
                     BarterKings.controller.attemptTradeRequestViaMenu(player, target);
                 } else {
-
                     player.sendMessage(ChatColor.AQUA + "You asked to trade with " + target.getDisplayName());
-                    target.sendMessage(ChatColor.AQUA + player.getDisplayName() + " wants to trade with you!");
+                    target.sendMessage(ChatColor.AQUA + player.getDisplayName() + " wants to trade with you. Click them to initiate!");
                 }
             } else {
                 player.sendMessage("You're not in a game right now!");
             }
         }
+    }
+
+    @EventHandler
+    public void onEatEvent(PlayerItemConsumeEvent event) {
+        event.setCancelled(true);
+        event.getPlayer().sendMessage("You can't eat in this game!");
     }
 
 

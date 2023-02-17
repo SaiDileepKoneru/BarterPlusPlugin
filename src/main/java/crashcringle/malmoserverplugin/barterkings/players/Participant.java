@@ -1,56 +1,83 @@
 package crashcringle.malmoserverplugin.barterkings.players;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
+import crashcringle.malmoserverplugin.data.SessionFactoryMaker;
+
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
+import org.bukkit.entity.Player;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
 import java.util.logging.Level;
 
 import static crashcringle.malmoserverplugin.barterkings.players.PlayerHandler.fm;
 
+@Entity
+@NamedQueries(
+    @NamedQuery(name = "Participant.findByUUID", query = "select pd from PlayerData pd where pd.uuid=?1")
+)
+@Data
 public class Participant  {
+
+    @Id
+    private String uuid;
+
+    
+    String name;
     Profession profession;
     Player player;
     int score = 0;
     Player clickedPlayer;
     boolean ready;
+
     public Participant(Player player) {
         this.player = player;
+        this.uuid = player.getUniqueId().toString();
+        this.name = player.getName();
         this.clickedPlayer = player;
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Participant created for " + player.getName());
     }
 
-    public int getScore() {
-        return this.score;
-    }
-
-    public void setScore(int score) {
-        this.score = score;
-    }
-
-    public void setProfession(Profession profession) {
-        this.profession = profession;
-    }
-
-    public Profession getProfession() {
-        return profession;
-    }
-
-    public Player getPlayer() {
-        return player;
-    }
-
-    public void setPlayer(Player player) {
-        this.player = player;
-    }
-
-    public Player getClickedPlayer() {
-        return clickedPlayer;
-    }
-
-    public void setClickedPlayer(Player player) {
+    public Participant(String uuid) {
+        this.player = Bukkit.getPlayer(uuid);
+        this.uuid = uuid;
+        this.name = player.getName();
         this.clickedPlayer = player;
+        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Participant created for " + player.getName());
+    }
+
+    public static Participant getParticipantData(String uuid) {
+        Participant pd;
+        SessionFactory sessionFactory = SessionFactoryMaker.getFactory();
+
+        try (Session session = sessionFactory.openSession()) {
+            pd = session.createNamedQuery("Participant.findByUUID", Participant.class)
+                    .setParameter(1, uuid).getSingleResultOrNull();
+
+            if (pd == null) {
+                Transaction tx = session.beginTransaction();
+                pd = new Participant(uuid);
+                session.merge(pd);
+                tx.commit();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            pd = null;
+        }
+
+        return pd;
     }
 
     public boolean isReady() {
@@ -90,9 +117,9 @@ public class Participant  {
                 if (this.getProfession().getTier1Items().contains(item2)) {
                     addedScore += item.getAmount();
                 } else if (this.getProfession().getTier2Items().contains(item2)) {
-                    addedScore += 2 * item.getAmount();
-                } else if (this.getProfession().getTier3Items().contains(item2)) {
                     addedScore += 3 * item.getAmount();
+                } else if (this.getProfession().getTier3Items().contains(item2)) {
+                    addedScore += 10 * item.getAmount();
                 }
                  if (addedScore > 0) {
 
