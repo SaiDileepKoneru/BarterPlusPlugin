@@ -1,7 +1,6 @@
 package crashcringle.malmoserverplugin;
 
 import crashcringle.malmoserverplugin.barterkings.BarterKings;
-import crashcringle.malmoserverplugin.barterkings.players.PlayerHandler;
 import crashcringle.malmoserverplugin.commands.CommandTrade;
 import crashcringle.malmoserverplugin.commands.ConstructTabCompleter;
 import crashcringle.malmoserverplugin.data.Database;
@@ -36,7 +35,7 @@ public final class MalmoServerPlugin extends JavaPlugin {
         //Try to connect to my MySQL database running locally
         String url = "jdbc:mysql://localhost/barterplus";
         String user = "root";
-        String password = "";
+        String password = "root";
 
         Connection connection = DriverManager.getConnection(url, user, password);
 
@@ -68,7 +67,9 @@ public final class MalmoServerPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        BarterKings.barterGame.attemptEnd();
+        if (BarterKings.barterGame != null)
+            if (BarterKings.barterGame.inProgress())
+                BarterKings.barterGame.attemptEnd();
         LegacyData.getTradersAndSave();
     }
 }

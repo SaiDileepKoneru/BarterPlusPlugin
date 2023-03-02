@@ -5,12 +5,16 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.hibernate.SessionFactory;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
 import crashcringle.malmoserverplugin.TradeMenu;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController.RequestStatus;
 import java.sql.Timestamp;
 import java.util.logging.Level;
+
+import static crashcringle.malmoserverplugin.barterkings.players.BarterGame.fm;
 
 
 public class TradeRequest {
@@ -39,16 +43,48 @@ public class TradeRequest {
         this.requestID = requester.getName() + requested.getName() + beginTimestamp.getTime();
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "New Trade via Cmd: " + requestID + "| " + requester.getName() + "---> " + requested.getName() + ": " + trade.getOfferString());
         this.requestID = requester.getName() + requested.getName() + beginTimestamp.toString();
+        this.finishedTimestamp = new Timestamp(0);
+
     }
 
     public TradeRequest(Player requester, Player requested) {
         this.requester = requester;
         this.requested = requested;
         this.beginTimestamp = new Timestamp(System.currentTimeMillis());
+        this.finishedTimestamp = new Timestamp(0);
         this.requestID = requester.getName() + requested.getName() + beginTimestamp.getTime();
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "New Trade via Menu: " + requestID + "| " + requester.getName() + "---> " + requested.getName());
         this.createTradeMenu();
 
+    }
+    public JSONObject toJSON() {
+        JSONObject tradeReqJson = new JSONObject();
+        tradeReqJson.put("requestID", getRequestID());
+        tradeReqJson.put("requester", getRequester().getName());
+        tradeReqJson.put("requested", getRequested().getName());
+        tradeReqJson.put("hasMenu", hasMenu());
+        tradeReqJson.put("beginTimestamp", getBeginTime().toString());
+        tradeReqJson.put("endTimestamp", getFinishTime().toString());
+        tradeReqJson.put("status", getRequestStatus().toString());
+        JSONArray offer = new JSONArray();
+        JSONArray request = new JSONArray();
+        if (getTrade() != null) {
+            for (ItemStack item : getTrade().getOfferedItems()) {
+                JSONObject itemJSON = new JSONObject();
+                itemJSON.put("resource", fm(item.getType()));
+                itemJSON.put("amount", item.getAmount());
+                offer.add(itemJSON);
+            }
+            for (ItemStack item : getTrade().getRequestedItems()) {
+                JSONObject itemJSON = new JSONObject();
+                itemJSON.put("resource", fm(item.getType()));
+                itemJSON.put("amount", item.getAmount());
+                request.add(itemJSON);
+            }
+        }
+        tradeReqJson.put("offer", offer);
+        tradeReqJson.put("request", request);
+        return tradeReqJson;
     }
 
     public void setRequestID(String requestID) {
@@ -91,11 +127,13 @@ public class TradeRequest {
     public void setAccepted(boolean accepted) {
         this.accepted = accepted;
         if (accepted) {
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, requested.getName() + " has accepted a tradeRequest: " + requestID +" with " + requester.getName());
+            requestStatus = RequestStatus.ACCEPTED;
+            MalmoServerPlugin.inst().getLogger().log(Level.INFO, requested.getName() + " has accepted tradeRequest: " + requestID +" with " + requester.getName()+ " for: " + trade.getOfferedItemsString());
         } else {
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, requested.getName() + " has denied a tradeRequest: " + requestID +" with " + requester.getName());
+            requestStatus = RequestStatus.DECLINED;
+            MalmoServerPlugin.inst().getLogger().log(Level.INFO, requested.getName() + " has denied tradeRequest: " + requestID +" with " + requester.getName() );
         }
-        this.completed = true;
+        setCompleted(true);
     }
 
     public boolean isCompleted() {
@@ -105,8 +143,11 @@ public class TradeRequest {
     public void setCompleted(boolean completed) {
         this.completed = completed;
         if (completed) {
-            requestStatus = accepted ? RequestStatus.ACCEPTED : cancelled ? RequestStatus.CANCELLED : RequestStatus.DECLINED;
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, requester.getName() + " has successfully completed tradeRequest: " + requestID + " with " + requested.getName() + " for: " + trade.getOfferString());
+            if (accepted) {
+                MalmoServerPlugin.inst().getLogger().log(Level.INFO,  "Request: " + requestID + " completed");
+            } else {
+                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Request: " + requestID + " failed");
+            }
             this.finishedTimestamp = new Timestamp(System.currentTimeMillis());
         }
     }
@@ -217,6 +258,7 @@ public class TradeRequest {
 
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
+        requestStatus = RequestStatus.CANCELLED;
         this.setCompleted(true);
     }
 

@@ -1,6 +1,9 @@
 package crashcringle.malmoserverplugin.barterkings.players;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
+import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
+import crashcringle.malmoserverplugin.barterkings.trades.TradeRequest;
+import crashcringle.malmoserverplugin.data.LegacyData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -11,14 +14,20 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.util.io.BukkitObjectInputStream;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.zip.GZIPInputStream;
 
-public class PlayerHandler {
+public class BarterGame {
 
     private static List<Participant> participants;
 
@@ -29,6 +38,10 @@ public class PlayerHandler {
     private Profession Leatherworker;
     private Profession Mason;
     private Profession Shepherd;
+
+    private Profession Lumberjack;
+
+    private Profession Librarian;
     private Profession Deceiver;
 
     private ArrayList<ItemStack> tier1Items = new ArrayList<>();
@@ -40,7 +53,7 @@ public class PlayerHandler {
     boolean inprogress = false;
 
     public void setParticipants(List<Participant> participants) {
-        PlayerHandler.participants = participants;
+        BarterGame.participants = participants;
     }
 
     public void Checkup() {
@@ -73,7 +86,7 @@ public class PlayerHandler {
         }
 
     }
-    public PlayerHandler() {
+    public BarterGame() {
         participants = new ArrayList<>();
 
     }
@@ -125,13 +138,38 @@ public class PlayerHandler {
         }
     }
 
-
-
     public boolean inProgress() {
         return inprogress;
     }
     public void addParticipant(Player player) {
-        getParticipants().add(new Participant(player));
+        Participant participant = new Participant(player);
+        switch(getParticipants().size()) {
+            case 0:
+                participant.setColor(net.md_5.bungee.api.ChatColor.of("#ffc7bb"));
+                break;
+            case 1:
+                participant.setColor(net.md_5.bungee.api.ChatColor.of("#ffe9bb"));
+                break;
+            case 2:
+                participant.setColor(net.md_5.bungee.api.ChatColor.of("#f3ffbb"));
+                break;
+            case 3:
+                participant.setColor(net.md_5.bungee.api.ChatColor.of("#d1ffbb"));
+                break;
+            case 4:
+                participant.setColor(net.md_5.bungee.api.ChatColor.of("#bbffe9"));
+                break;
+            case 5:
+                participant.setColor(net.md_5.bungee.api.ChatColor.of("#c8bbff"));
+                break;
+            case 6:
+                participant.setColor(net.md_5.bungee.api.ChatColor.of("#eabbff"));
+                break;
+            case 7:
+                participant.setColor(net.md_5.bungee.api.ChatColor.of("#ffbbf2"));
+                break;
+        }
+        getParticipants().add(participant);
     }
 
     public void attemptStart() {
@@ -165,6 +203,80 @@ public class PlayerHandler {
                 e.printStackTrace();
             }
         }
+        JSONObject data = new JSONObject();
+        JSONArray barterGames = new JSONArray();
+        JSONObject barterGame = new JSONObject();
+        barterGame.put("winner", winner.getPlayer().getName());
+        barterGame.put("score", winner.getScore());
+        barterGame.put("participants", getParticipants().size());
+        barterGame.put("date", new Date().toString());
+        JSONArray participants = new JSONArray();
+        for (Participant participant : getParticipants()) {
+            JSONObject participantJSON = new JSONObject();
+            participantJSON.put("name", participant.getPlayer().getName());
+            participantJSON.put("score", participant.getScore());
+            participantJSON.put("profession", participant.getProfession().getName());
+            participantJSON.put("uuid", participant.getPlayer().getUniqueId().toString());
+            participants.add(participantJSON);
+        }
+        barterGame.put("participants", participants);
+        JSONArray trades = new JSONArray();
+        for (TradeRequest tradeRequest : TradeController.getAllRequests()) {
+            trades.add(tradeRequest.toJSON());
+        }
+        barterGame.put("trades", trades);
+        FileWriter fileW = null;
+        try {
+            try {
+                BukkitObjectInputStream in = new BukkitObjectInputStream(new GZIPInputStream(new FileInputStream(MalmoServerPlugin.inst().getDataFolder().getPath() +"/barterGame.json")));
+                String content2 = (String) in.readObject();
+                in.close();
+                MalmoServerPlugin.inst().getLogger().log(Level.INFO, content2);
+            } catch (ClassNotFoundException | IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            File file = new File(MalmoServerPlugin.inst().getDataFolder().getPath() +"/barterGame.json");
+            fileW = new FileWriter(file);
+            if (file.exists()) {
+                // Read the json to a JSON object
+                JSONParser parser = new JSONParser();
+                try {
+
+                    FileReader reader = new FileReader(file);
+                    String content = new String(Files.readAllBytes(file.toPath()));
+                    MalmoServerPlugin.inst().getLogger().log(Level.INFO, content);
+                    // Log the contents of the file
+                    Object p = parser.parse(content);
+                    if(p instanceof JSONArray){
+                        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "JSONArray");
+                        org.json.simple.JSONArray object = (JSONArray)p;
+                        barterGames = object;
+                    }
+                    else if(p instanceof JSONObject){
+                        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "JSONObject");
+                        org.json.simple.JSONObject object = (JSONObject)p;
+                        barterGames = (JSONArray) object.get("barterGames");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            barterGames.add(barterGame);
+            data.put("barterGames", barterGames);
+            fileW.write(data.toJSONString());
+            fileW.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                fileW.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         inprogress = false;
         getParticipants().clear();
         
@@ -370,17 +482,15 @@ public class PlayerHandler {
 
         List<ItemStack> tier1Leatherworker = new ArrayList<>();
         tier1Leatherworker.add(new ItemStack(Material.LEATHER));
-        tier1Leatherworker.add(new ItemStack(Material.LEATHER_CHESTPLATE));
+        tier1Leatherworker.add(new ItemStack(Material.STICK));
         tier1Leatherworker.add(new ItemStack(Material.LEATHER_BOOTS));
-        //tier1Leatherworker.add(new ItemStack(Material.LEATHER_LEGGINGS));
-        //tier1Leatherworker.add(new ItemStack(Material.LEATHER_HELMET));
 
         List<ItemStack> tier2Leatherworker = new ArrayList<>();
         tier2Leatherworker.add(new ItemStack(Material.SADDLE));
         tier2Leatherworker.add(new ItemStack(Material.RABBIT_HIDE));
 
         List<ItemStack> tier3Leatherworker = new ArrayList<>();
-        tier3Leatherworker.add(new ItemStack(Material.LEATHER_HORSE_ARMOR));
+        tier3Leatherworker.add(new ItemStack(Material.COW_SPAWN_EGG));
 
         setLeatherworker(new Profession("Leatherworker", tier1Leatherworker, tier2Leatherworker, tier3Leatherworker));
 
@@ -396,7 +506,7 @@ public class PlayerHandler {
         //tier2Mason.add(new ItemStack(Material.WHITE_GLAZED_TERRACOTTA));
 
         List<ItemStack> tier3Mason = new ArrayList<>();
-        tier3Mason.add(new ItemStack(Material.QUARTZ));
+        tier3Mason.add(new ItemStack(Material.CHISELED_QUARTZ_BLOCK));
 
         setMason(new Profession("Mason", tier1Mason, tier2Mason, tier3Mason));
 
@@ -413,6 +523,21 @@ public class PlayerHandler {
         tier3Shepherd.add(new ItemStack(Material.SHEEP_SPAWN_EGG));
 
         setShepherd(new Profession("Shepherd", tier1Shepherd, tier2Shepherd, tier3Shepherd));
+
+        List<ItemStack> tier1Lumberjack = new ArrayList<>();
+        tier1Lumberjack.add(new ItemStack(Material.OAK_LOG));
+        tier1Lumberjack.add(new ItemStack(Material.SPRUCE_LOG));
+        tier1Lumberjack.add(new ItemStack(Material.BIRCH_LOG));
+
+        List<ItemStack> tier2Lumberjack = new ArrayList<>();
+        tier2Lumberjack.add(new ItemStack(Material.OAK_PLANKS));
+        tier2Lumberjack.add(new ItemStack(Material.SPRUCE_PLANKS));
+
+        List<ItemStack> tier3lumberjack = new ArrayList<>();
+        tier3lumberjack.add(new ItemStack(Material.WOODEN_AXE));
+
+        setLumberjack(new Profession("Lumberjack", tier1Lumberjack, tier2Lumberjack, tier3lumberjack));
+
 
     }
     List<Integer> used = new ArrayList<>();
@@ -552,5 +677,13 @@ public class PlayerHandler {
 
     public void setTier3Items(ArrayList<ItemStack> tier3Items) {
         this.tier3Items = tier3Items;
+    }
+
+    public Profession getLumberjack() {
+        return Lumberjack;
+    }
+
+    public void setLumberjack(Profession lumberjack) {
+        Lumberjack = lumberjack;
     }
 }

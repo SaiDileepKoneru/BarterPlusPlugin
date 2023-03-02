@@ -1,5 +1,8 @@
 package crashcringle.malmoserverplugin.data;
 
+import crashcringle.malmoserverplugin.barterkings.trades.Trade;
+import crashcringle.malmoserverplugin.barterkings.trades.TradeRequest;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
@@ -14,7 +17,10 @@ public class SessionFactoryMaker {
         try {
             factory = new Configuration()
                     .addAnnotatedClass(Participant.class)
-                    .addAnnotatedClass(Profession.class)
+//                    .addAnnotatedClass(Profession.class)
+//                    .addAnnotatedClass(TradeRequest.class)
+//                    .addAnnotatedClass(Trade.class)
+//                    .addAnnotatedClass()
                     .configure().buildSessionFactory();
         } catch (Throwable ex) {
             System.err.println("Failed to create sessionFactory object." + ex);
@@ -22,12 +28,16 @@ public class SessionFactoryMaker {
         }
     }
 
+
     public static org.hibernate.SessionFactory getFactory() {
         if (factory == null) {
             configureFactory();
         }
 
         return factory;
+    }
+    public Session getSession() {
+        return factory.openSession();
     }
 
 }

@@ -2,9 +2,7 @@ package crashcringle.malmoserverplugin.commands;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
 import crashcringle.malmoserverplugin.barterkings.BarterKings;
-import crashcringle.malmoserverplugin.barterkings.players.PlayerHandler;
 import crashcringle.malmoserverplugin.barterkings.trades.Trade;
-import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeRequest;
 
 import org.bukkit.Bukkit;
@@ -110,7 +108,7 @@ public class CommandTrade implements CommandExecutor {
                                     BarterKings.barterGame.addParticipant(player);
                                     BarterKings.barterGame.readyUp(player);
                                     sender.sendMessage(ChatColor.GREEN + "You are now a participant");
-                                    sender.sendMessage(ChatColor.GREEN + "Type \"/barter readyUp\" to ready up for the game");
+                                    sender.sendMessage(ChatColor.GREEN + "Type \"/barter readyUp\" to toggle readiness for the game");
                                     return true;
                                 } else {
                                     sender.sendMessage(ChatColor.RED + "Usage: /barter join");
@@ -259,7 +257,7 @@ public class CommandTrade implements CommandExecutor {
                                                 BarterKings.controller.sendTradeRequest(requester, requested, new Trade(requester.getInventory().getItemInMainHand(),  Integer.parseInt(args[3]), new ItemStack(Material.getMaterial(args[2].toUpperCase())))) ;
                                             } catch (Exception e) {
                                                 e.printStackTrace();
-                                                sender.sendMessage(ChatColor.RED + "Error");
+                                                sender.sendMessage(ChatColor.RED + "Error, Try again!");
                                             }
                                         }
                                     }

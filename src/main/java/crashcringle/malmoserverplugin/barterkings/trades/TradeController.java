@@ -16,7 +16,16 @@ public class TradeController {
     public static Map<Player, ArrayList<TradeRequest>> outgoingRequests;
     public static Map<Player, ArrayList<TradeRequest>> incomingRequests;
 
-    public static ArrayList<Map<Player, TradeRequest>> staleRequests;
+    private static ArrayList<TradeRequest> allRequests;
+
+    public static ArrayList<TradeRequest> getAllRequests() {
+        return allRequests;
+    }
+
+    public static void setAllRequests(ArrayList<TradeRequest> allRequests) {
+        TradeController.allRequests = allRequests;
+    }
+
     public enum RequestStatus {
         PENDING,
         ACCEPTED,
@@ -26,6 +35,7 @@ public class TradeController {
     public TradeController() {
         outgoingRequests = new HashMap<>();
         incomingRequests = new HashMap<>();
+        allRequests = new ArrayList<>();
     }
 
     public void attemptTradeRequestViaMenu(Player requester, Player requested) {
@@ -48,7 +58,7 @@ public class TradeController {
             HoverEvent cancelHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.RED + "Click to Cancel").create());
             ClickEvent acceptClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/barter accept "+requester.getName());
             ClickEvent denyClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/barter deny "+requester.getName());
-            ClickEvent cancelClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/barter cancel "+requester.getName());
+            ClickEvent cancelClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/barter cancel "+requested.getName());
 
             TextComponent message = new TextComponent(ChatColor.AQUA + requester.getName() + " has requested a trade with you");
             message.setHoverEvent(acceptHover);
@@ -195,6 +205,7 @@ public class TradeController {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        getAllRequests().add(tradeRequest);
         if (outgoingRequests.containsKey(tradeRequest.getRequester())) {
             outgoingRequests.get(tradeRequest.getRequester()).add(tradeRequest);
         } else {

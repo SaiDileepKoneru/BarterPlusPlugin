@@ -1,5 +1,6 @@
 package crashcringle.malmoserverplugin.barterkings.trades;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.ChatColor;
@@ -13,14 +14,16 @@ public class Trade {
     private ItemStack offeredItem;
     private int offeredAmount;
 
-    private List<ItemStack> requestedItems;
-    private List<ItemStack> offeredItems;
+    private List<ItemStack> requestedItems = new ArrayList<ItemStack>();
+    private List<ItemStack> offeredItems = new ArrayList<ItemStack>();
 
     public Trade(ItemStack offeredItem, int offeredAmount, ItemStack requestedItem, int requestedAmount) {
         this.offeredItem = offeredItem;
         this.offeredAmount = offeredAmount;
         this.requestedItem = requestedItem;
         this.requestedAmount = requestedAmount;
+        requestedItems.add(new ItemStack(requestedItem.getType(), requestedAmount));
+        offeredItems.add(new ItemStack(offeredItem.getType(), offeredAmount));
     }
 
     public Trade(List<ItemStack> offeredItems, List<ItemStack> requestedItems) {
@@ -33,6 +36,8 @@ public class Trade {
         this.offeredAmount = offeredItemStack.getAmount();
         this.requestedItem = requestedItem;
         this.requestedAmount = requestedAmount;
+        requestedItems.add(new ItemStack(requestedItem.getType(), requestedAmount));
+        offeredItems.add(new ItemStack(offeredItem.getType(), offeredAmount));
     }
 
     public Trade(ItemStack offeredItemStack, ItemStack requestedItem) {
@@ -40,6 +45,9 @@ public class Trade {
         this.offeredAmount = offeredItemStack.getAmount();
         this.requestedItem = requestedItem;
         this.requestedAmount = requestedItem.getAmount();
+
+        requestedItems.add(new ItemStack(requestedItem.getType(), requestedAmount));
+        offeredItems.add(new ItemStack(offeredItem.getType(), offeredAmount));
     }
 
     public ItemStack getRequestedItem() {

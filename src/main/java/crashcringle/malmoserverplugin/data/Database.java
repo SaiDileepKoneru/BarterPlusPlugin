@@ -32,24 +32,24 @@ public class Database {
         // first lets read our setup file.
         // This file contains statements to create our inital tables.
         // it is located in the resources.
-        // String setup;
-        // try (InputStream in = MalmoServerPlugin.inst().getResource("barterDb.sql")) {
-        //     // Java 9+ way
-        //     setup = new String(in.readAllBytes());
-        // } catch (Exception e) {
-        //     MalmoServerPlugin.inst().getLogger().log(Level.SEVERE, "Could not read db setup file.", e);
-        //     throw e;
-        // }
-        // // Mariadb can only handle a single query per statement. We need to split at ;.
-        // String[] queries = setup.split(";");
-        // // execute each query to the database.
-        // for (String query : queries) {
-        //     try (Connection conn = MalmoServerPlugin.inst().getConnection();
-        //          PreparedStatement stmt = conn.prepareStatement(query)) {
-        //         stmt.execute();
-        //         stmt.close();
-        //     }
-        // }
+//         String setup;
+//         try (InputStream in = MalmoServerPlugin.inst().getResource("barterDb.sql")) {
+//             // Java 9+ way
+//             setup = new String(in.readAllBytes());
+//         } catch (Exception e) {
+//             MalmoServerPlugin.inst().getLogger().log(Level.SEVERE, "Could not read db setup file.", e);
+//             throw e;
+//         }
+//         // Mariadb can only handle a single query per statement. We need to split at ;.
+//         String[] queries = setup.split(";");
+//         // execute each query to the database.
+//         for (String query : queries) {
+//             try (Connection conn = MalmoServerPlugin.inst().getConnection();
+//                  PreparedStatement stmt = conn.prepareStatement(query)) {
+//                 stmt.execute();
+//                 stmt.close();
+//             }
+//         }
         MalmoServerPlugin.inst().getLogger().info("§2Database setup complete.");
     }
     

@@ -44,29 +44,33 @@ public class MalmoServerListener implements Listener {
 
     @EventHandler
     public void openVillager (PlayerInteractEntityEvent event) {
-        if (!(event.getRightClicked() instanceof Villager)) return;
-        if (!BarterKings.getTraders().containsKey(event.getRightClicked().getEntityId()))
-            new MalmoTrader((Villager) event.getRightClicked());
-        else
-            BarterKings.traders.get(event.getRightClicked().getEntityId()).printRecipes();
+//        if (!(event.getRightClicked() instanceof Villager)) return;
+//        if (!BarterKings.getTraders().containsKey(event.getRightClicked().getEntityId()))
+//            new MalmoTrader((Villager) event.getRightClicked());
+//        else
+//            BarterKings.traders.get(event.getRightClicked().getEntityId()).printRecipes();
     }
 
     @EventHandler
     
     public void broadcastTradeEvent (AsyncPlayerChatEvent event) {
-        if (event.getMessage().contains("want to trade") || event.getMessage().contains("trade with me?") || event.getMessage().contains("trade?")) {
-            event.setCancelled(true);
-            TextComponent message = new TextComponent(event.getPlayer().getDisplayName() + " wants to trade!");
-            message.setColor(ChatColor.AQUA);
-            message.setItalic(true);
-            message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.AQUA + event.getPlayer().getName() + ": " + ChatColor.DARK_RED + event.getMessage()).create()));
-            message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org"));
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                player.spigot().sendMessage(message);
-            }
-
-
+        if (BarterKings.barterGame.isParticipant(event.getPlayer())) {
+            Participant participant = BarterKings.barterGame.getParticipant(event.getPlayer());
+            event.setMessage(participant.getColor() + event.getMessage());
         }
+//        if (event.getMessage().contains("want to trade") || event.getMessage().contains("trade with me?") || event.getMessage().contains("trade?")) {
+//            event.setCancelled(true);
+//            TextComponent message = new TextComponent(event.getPlayer().getDisplayName() + " wants to trade!");
+//            message.setColor(ChatColor.AQUA);
+//            message.setItalic(true);
+//            message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.AQUA + event.getPlayer().getName() + ": " + ChatColor.DARK_RED + event.getMessage()).create()));
+//            message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org"));
+//            for (Player player : Bukkit.getOnlinePlayers()) {
+//                player.spigot().sendMessage(message);
+//            }
+//
+//
+//        }
     }
 
     @EventHandler

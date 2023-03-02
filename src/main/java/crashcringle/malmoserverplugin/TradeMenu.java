@@ -77,6 +77,7 @@ public class TradeMenu {
         
         slot.setClickHandler((player, info) -> {
             tradeRequest.setCancelled(true);
+            tradeRequest.setCompleted(true);
             //returnItems();
             this.menu.close();
         });
@@ -113,7 +114,8 @@ public class TradeMenu {
         });
         
         slot.setClickHandler((player, info) -> {
-            tradeRequest.setCancelled(true);
+            tradeRequest.setAccepted(false);
+            tradeRequest.setCompleted(true);
             this.menu.close();
         });
 
@@ -239,15 +241,22 @@ public class TradeMenu {
         menu.setCloseHandler((player, menu1) -> {
             if (!(player1Ready && player2Ready)) {
                 returnItems(player);
-                menu.close(player1);
-                menu.close(player2);
+
                 MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " has closed Menu");
                 MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " has cancelled trade with " + (player == player1 ? player2.getName() : player1.getName()));
                 if (rq != null) {
-                    rq.setAccepted(false);
-                    rq.setCompleted(true);
+                    if (!rq.isCompleted()) {
+                        if (player == player1) {
+                            rq.setCancelled(true);
+                        } else {
+                            rq.setAccepted(false);
+                        }
+                        rq.setCompleted(true);
+                    }
                 }
             }
+            menu.close(player1);
+            menu.close(player2);
             player.sendMessage("You just closed the menu...");
         });
     }
@@ -279,18 +288,18 @@ public class TradeMenu {
                 return;
             }
             // If the slot is the player's slot, allow the click
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "\n********************************");
+           // MalmoServerPlugin.inst().getLogger().log(Level.INFO, "\n********************************");
             MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player " + player.getName() + " clicked slot " + slot.getIndex() + " at " + System.currentTimeMillis());
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, info.getClickType().toString() + " " + info.getAction().toString() + " " + info.getResult().toString());
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "P1Item " + info.getClickedSlot().getItem(player1) + " vs" +info.getClickedSlot().getItem(player2));
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "P1RawItem " + info.getClickedSlot().getRawItem(player1) + " vs" + info.getClickedSlot().getRawItem(player2));
+           // MalmoServerPlugin.inst().getLogger().log(Level.INFO, info.getClickType().toString() + " " + info.getAction().toString() + " " + info.getResult().toString());
+           // MalmoServerPlugin.inst().getLogger().log(Level.INFO, "P1Item " + info.getClickedSlot().getItem(player1) + " vs" +info.getClickedSlot().getItem(player2));
+           // MalmoServerPlugin.inst().getLogger().log(Level.INFO, "P1RawItem " + info.getClickedSlot().getRawItem(player1) + " vs" + info.getClickedSlot().getRawItem(player2));
            try {
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Amount : " + info.getItemAmount());
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Adding Item : " + info.getAddingItem());
+           // MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Amount : " + info.getItemAmount());
+           // MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Adding Item : " + info.getAddingItem());
            } catch(Exception e) {
 
            }
-            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Cursor Item : " + player.getItemOnCursor());
+           // MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Cursor Item : " + player.getItemOnCursor());
 
 
             //player.sendMessage("You clicked the slot at index " + info.getClickedSlot().getIndex());

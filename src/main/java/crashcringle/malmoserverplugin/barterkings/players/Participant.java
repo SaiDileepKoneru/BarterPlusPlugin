@@ -1,46 +1,50 @@
 package crashcringle.malmoserverplugin.barterkings.players;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
-import crashcringle.malmoserverplugin.data.SessionFactoryMaker;
+//import crashcringle.malmoserverplugin.data.PlayerConverter;
+//import crashcringle.malmoserverplugin.data.ProfessionConverter;
+//import crashcringle.malmoserverplugin.data.SessionFactoryMaker;
 
+import jakarta.persistence.*;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
-import org.bukkit.entity.Player;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import java.util.logging.Level;
 
-import static crashcringle.malmoserverplugin.barterkings.players.PlayerHandler.fm;
+import static crashcringle.malmoserverplugin.barterkings.players.BarterGame.fm;
 
-@Entity
-@NamedQueries(
-    @NamedQuery(name = "Participant.findByUUID", query = "select pd from PlayerData pd where pd.uuid=?1")
-)
+//@Entity
+//@NamedQueries(
+//    @NamedQuery(name = "Participant.findByUUID", query = "select pd from PlayerData pd where pd.uuid=?1")
+//)
 @Data
 public class Participant  {
 
-    @Id
+   // @Id
     private String uuid;
-
-    
+   // @Column
     String name;
+
+//    @Convert(converter = ProfessionConverter.class)
+//    @Column
     Profession profession;
+
+   // @Convert(converter = PlayerConverter.class)
+   // @Column
     Player player;
     int score = 0;
     Player clickedPlayer;
     boolean ready;
+
+    ChatColor color = ChatColor.WHITE;
 
     public Participant(Player player) {
         this.player = player;
@@ -58,27 +62,27 @@ public class Participant  {
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Participant created for " + player.getName());
     }
 
-    public static Participant getParticipantData(String uuid) {
-        Participant pd;
-        SessionFactory sessionFactory = SessionFactoryMaker.getFactory();
-
-        try (Session session = sessionFactory.openSession()) {
-            pd = session.createNamedQuery("Participant.findByUUID", Participant.class)
-                    .setParameter(1, uuid).getSingleResultOrNull();
-
-            if (pd == null) {
-                Transaction tx = session.beginTransaction();
-                pd = new Participant(uuid);
-                session.merge(pd);
-                tx.commit();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            pd = null;
-        }
-
-        return pd;
-    }
+//    public static Participant getParticipantData(String uuid) {
+//        Participant pd;
+//        SessionFactory sessionFactory = SessionFactoryMaker.getFactory();
+//
+//        try (Session session = sessionFactory.openSession()) {
+//            pd = session.createNamedQuery("Participant.findByUUID", Participant.class)
+//                    .setParameter(1, uuid).getSingleResultOrNull();
+//
+//            if (pd == null) {
+//                Transaction tx = session.beginTransaction();
+//                pd = new Participant(uuid);
+//                session.merge(pd);
+//                tx.commit();
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            pd = null;
+//        }
+//
+//        return pd;
+//    }
 
     public boolean isReady() {
         return ready;
