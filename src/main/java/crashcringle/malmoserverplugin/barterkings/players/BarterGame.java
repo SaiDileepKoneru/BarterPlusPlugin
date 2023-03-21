@@ -404,6 +404,15 @@ public class BarterGame {
             int amt = 3;
             while (amt > 0) {
                 int amtToGive = amt >= 2 ? ((int) (Math.random() * amt)) : 1;
+                if (item.getType().toString().toUpperCase().contains("SWORD") || item.getType().toString().toUpperCase().contains("AXE") || item.getType().toString().toUpperCase().contains("BOW")
+                        || item.getType().toString().toUpperCase().contains("HELMET") || item.getType().toString().toUpperCase().contains("CHESTPLATE") || item.getType().toString().toUpperCase().contains("LEGGINGS")
+                        || item.getType().toString().toUpperCase().contains("BOOTS") || item.getType().toString().toUpperCase().contains("TRIDENT") || item.getType().toString().toUpperCase().contains("ELYTRA") || item.getType().toString().toUpperCase().contains("SHIELD")
+                        || item.getType().toString().toUpperCase().contains("HOE") || item.getType().toString().toUpperCase().contains("PICKAXE") || item.getType().toString().toUpperCase().contains("SHOVEL") || item.getType().toString().toUpperCase().contains("FISHING_ROD")
+                        || item.getType().toString().toUpperCase().contains("CROSSBOW") || item.getType().toString().toUpperCase().contains("CARROT_ON_A_STICK") || item.getType().toString().toUpperCase().contains("FLINT_AND_STEEL") || item.getType().toString().toUpperCase().contains("SHEARS")
+                        || item.getType().toString().toUpperCase().contains("SPADE") || item.getType().toString().toUpperCase().contains("HORSE_ARMOR") || item.getType().toString().toUpperCase().contains("STEW") || item.getType().toString().toUpperCase().contains("BUCKET")
+                ) {
+                    amtToGive = 1;
+                }
                 randomIndex =  (int) (Math.random() * getParticipants().size());
                 item.setAmount(amtToGive);
                 getParticipants().get(randomIndex).getPlayer().getInventory().addItem(item);
@@ -525,13 +534,13 @@ public class BarterGame {
         setShepherd(new Profession("Shepherd", tier1Shepherd, tier2Shepherd, tier3Shepherd));
 
         List<ItemStack> tier1Lumberjack = new ArrayList<>();
-        tier1Lumberjack.add(new ItemStack(Material.OAK_LOG));
-        tier1Lumberjack.add(new ItemStack(Material.SPRUCE_LOG));
-        tier1Lumberjack.add(new ItemStack(Material.BIRCH_LOG));
+        tier1Lumberjack.add(new ItemStack(Material.OAK_PLANKS));
+        tier1Lumberjack.add(new ItemStack(Material.SPRUCE_PLANKS));
+        tier1Lumberjack.add(new ItemStack(Material.BIRCH_PLANKS));
 
         List<ItemStack> tier2Lumberjack = new ArrayList<>();
-        tier2Lumberjack.add(new ItemStack(Material.OAK_PLANKS));
-        tier2Lumberjack.add(new ItemStack(Material.SPRUCE_PLANKS));
+        tier2Lumberjack.add(new ItemStack(Material.OAK_LOG));
+        tier2Lumberjack.add(new ItemStack(Material.SPRUCE_LOG));
 
         List<ItemStack> tier3lumberjack = new ArrayList<>();
         tier3lumberjack.add(new ItemStack(Material.WOODEN_AXE));

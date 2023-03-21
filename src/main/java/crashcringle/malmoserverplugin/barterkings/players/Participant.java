@@ -117,7 +117,7 @@ public class Participant  {
                 int addedScore = 0;
                 ItemStack item2 = new ItemStack(item.getType());
                 item2.setAmount(1);
-                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Item: " + item.getType() + " x" + item.getAmount());
+                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Item: " + item.getType() + " x" + item.getAmount() + " = " + addedScore);
                 if (this.getProfession().getTier1Items().contains(item2)) {
                     addedScore += item.getAmount();
                 } else if (this.getProfession().getTier2Items().contains(item2)) {

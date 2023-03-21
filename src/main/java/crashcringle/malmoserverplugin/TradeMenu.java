@@ -240,7 +240,7 @@ public class TradeMenu {
     public void addCloseHandler(Menu menu) {
         menu.setCloseHandler((player, menu1) -> {
             if (!(player1Ready && player2Ready)) {
-                //returnItems(player);
+                returnItems(player);
 
                 MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " has closed Menu");
                 MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " has cancelled trade with " + (player == player1 ? player2.getName() : player1.getName()));
@@ -254,8 +254,6 @@ public class TradeMenu {
                         rq.setCompleted(true);
                     }
                 }
-
-                returnItems(player);
             }
             menu.close(player1);
             menu.close(player2);
@@ -264,7 +262,7 @@ public class TradeMenu {
     }
 
     public void returnItems(Player player) {
-                    // ArrayList<ItemStack> player1Items = new ArrayList<>();
+             // ArrayList<ItemStack> player1Items = new ArrayList<>();
             // ArrayList<ItemStack> player2Items = new ArrayList<>();
         if (player == player1) {
             for (int i = 0; i < this.getPlayer1Items().size(); i++) {
