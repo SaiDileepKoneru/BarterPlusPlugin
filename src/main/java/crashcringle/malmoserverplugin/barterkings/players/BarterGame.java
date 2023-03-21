@@ -35,10 +35,10 @@ public class BarterGame {
     private Profession Blacksmith;
     private Profession Fisherman;
     private Profession Butcher;
+
     private Profession Leatherworker;
     private Profession Mason;
     private Profession Shepherd;
-
     private Profession Lumberjack;
 
     private Profession Librarian;
@@ -542,7 +542,7 @@ public class BarterGame {
     }
     List<Integer> used = new ArrayList<>();
     public Profession getRandomProfession() {
-        int random = (int) (Math.random() * 7);
+        int random = (int) (Math.random() * 8);
         if (used.contains(random)) {
             return getRandomProfession();
         } else {
@@ -563,6 +563,8 @@ public class BarterGame {
                 return getMason();
             case 6:
                 return getShepherd();
+            case 7:
+                return getLumberjack();
             default:
                 return getFarmer();
         }

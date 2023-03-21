@@ -69,17 +69,22 @@ public class TradeRequest {
         JSONArray offer = new JSONArray();
         JSONArray request = new JSONArray();
         if (getTrade() != null) {
-            for (ItemStack item : getTrade().getOfferedItems()) {
-                JSONObject itemJSON = new JSONObject();
-                itemJSON.put("resource", fm(item.getType()));
-                itemJSON.put("amount", item.getAmount());
-                offer.add(itemJSON);
-            }
-            for (ItemStack item : getTrade().getRequestedItems()) {
-                JSONObject itemJSON = new JSONObject();
-                itemJSON.put("resource", fm(item.getType()));
-                itemJSON.put("amount", item.getAmount());
-                request.add(itemJSON);
+            try {
+                for (ItemStack item : getTrade().getOfferedItems()) {
+                    JSONObject itemJSON = new JSONObject();
+                    itemJSON.put("resource", fm(item.getType()));
+                    itemJSON.put("amount", item.getAmount());
+                    offer.add(itemJSON);
+                }
+                for (ItemStack item : getTrade().getRequestedItems()) {
+                    JSONObject itemJSON = new JSONObject();
+                    itemJSON.put("resource", fm(item.getType()));
+                    itemJSON.put("amount", item.getAmount());
+                    request.add(itemJSON);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                MalmoServerPlugin.inst().getLogger().log(Level.SEVERE, "Error converting trade to JSON: " + e.getMessage());
             }
         }
         tradeReqJson.put("offer", offer);
@@ -335,6 +340,24 @@ public class TradeRequest {
             tradeMenu.getPlayer1().playSound(tradeMenu.getPlayer1().getLocation(), Sound.ENTITY_VILLAGER_NO, 10, 0.4F);
             tradeMenu.getPlayer2().playSound(tradeMenu.getPlayer2().getLocation(), Sound.ENTITY_VILLAGER_NO, 10, 0.4F);
         }
+    }
+    public void completeTradeMenu2() {
+            tradeMenu.getPlayer1Items().clear();
+            tradeMenu.getPlayer2Items().clear();
+            for (int i = 0; i < tradeMenu.getPlayer1Slots().size(); i++) {
+                // Check that there is an item in the slot
+                if (tradeMenu.getPlayer1Slots().get(i).getRawItem(tradeMenu.getPlayer1()) != null) {
+                    tradeMenu.getPlayer1Items().add(tradeMenu.getPlayer1Slots().get(i).getRawItem(tradeMenu.getPlayer1()));
+                }
+            }
+            for (int i = 0; i < tradeMenu.getPlayer2Slots().size(); i++) {
+                // Check that there is an item in the slot
+                if (tradeMenu.getPlayer2Slots().get(i).getRawItem(tradeMenu.getPlayer2()) != null) {
+                    tradeMenu.getPlayer2Items().add(tradeMenu.getPlayer2Slots().get(i).getRawItem(tradeMenu.getPlayer2()));
+                }
+            }
+            this.setTrade(new Trade(tradeMenu.getPlayer1Items(), tradeMenu.getPlayer2Items()));
+
     }
 
     public void setTradeMenu(TradeMenu tradeMenu) {

@@ -240,7 +240,7 @@ public class TradeMenu {
     public void addCloseHandler(Menu menu) {
         menu.setCloseHandler((player, menu1) -> {
             if (!(player1Ready && player2Ready)) {
-                returnItems(player);
+                //returnItems(player);
 
                 MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " has closed Menu");
                 MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " has cancelled trade with " + (player == player1 ? player2.getName() : player1.getName()));
@@ -254,6 +254,8 @@ public class TradeMenu {
                         rq.setCompleted(true);
                     }
                 }
+
+                returnItems(player);
             }
             menu.close(player1);
             menu.close(player2);

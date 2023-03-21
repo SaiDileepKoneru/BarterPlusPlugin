@@ -229,7 +229,24 @@ public class CommandTrade implements CommandExecutor {
                     }
                     return true;
                 }  else if (args[0].equalsIgnoreCase("score")) {
-                    if (sender.hasPermission("malmoserverplugin.score")) {
+                    if (args.length >= 2 && args[1].length() > 1) {
+                        if (!(sender instanceof Player)) {
+                            Player player = Bukkit.getPlayer(args[1]);
+                            if (player != null) {
+                                if (BarterKings.barterGame.isParticipant(player)) {
+                                    player.sendMessage(ChatColor.GRAY + "Player: " + player.getName() + " score is: " + BarterKings.barterGame.getParticipant(player).getCalculatedScore());
+                                    return true;
+                                } else {
+                                    player.sendMessage(ChatColor.RED + "They are not in the game");
+                                    return false;
+                                }
+                            } else {
+                                sender.sendMessage(ChatColor.RED + "That player is not online");
+                                return false;
+                            
+                            }
+                        }
+                    } else if (sender.hasPermission("malmoserverplugin.score")) {
                         if (sender instanceof Player) {
                             Player player = (Player) sender;
                             if (BarterKings.barterGame.isParticipant(player)) {
