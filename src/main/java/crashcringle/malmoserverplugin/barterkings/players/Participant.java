@@ -62,6 +62,14 @@ public class Participant  {
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Participant created for " + player.getName());
     }
 
+    public Player getPlayer() {
+        if (player == Bukkit.getPlayer(name)) {
+            return player;
+        } else {
+            return Bukkit.getPlayer(name);
+        }
+    }
+
 //    public static Participant getParticipantData(String uuid) {
 //        Participant pd;
 //        SessionFactory sessionFactory = SessionFactoryMaker.getFactory();
@@ -98,6 +106,7 @@ public class Participant  {
         ready = false;
     }
 
+    
     /**
      * This method takes a parameter of participant and returns the score 
      * of the participant based on the amount of tier 1, 2, and 3 items they have in their inventory.
@@ -134,16 +143,99 @@ public class Participant  {
                  }
             }
         }
+
         setScore(score);
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Score for " + getPlayer().getName() + " is " + score);
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "*********************************************");
 
     }
 
-    public int getCalculatedScore() {
-        calculateScore();
-        return score;
+     /**
+     * This method takes a parameter of participant and returns the score 
+     * of the participant based on the amount of tier 1, 2, and 3 items they have in their inventory.
+     * @param
+     * @return
+     */
+    public void calculateSilentScore() {
+        int score = 0;
+        if (this.getProfession() == null) {
+            MalmoServerPlugin.inst().getLogger().log(Level.WARNING, "Profession is null for " + getPlayer().getName());
+            return;
+        }
+        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Score Breakdown " + getPlayer().getName());
+        for (ItemStack item : getPlayer().getInventory().getContents()) {
+            if (item != null) {
+                int addedScore = 0;
+                ItemStack item2 = new ItemStack(item.getType());
+                item2.setAmount(1);
+                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Item: " + item.getType() + " x" + item.getAmount() + " = " + addedScore);
+                if (this.getProfession().getTier1Items().contains(item2)) {
+                    addedScore += item.getAmount();
+                } else if (this.getProfession().getTier2Items().contains(item2)) {
+                    addedScore += 3 * item.getAmount();
+                } else if (this.getProfession().getTier3Items().contains(item2)) {
+                    addedScore += 10 * item.getAmount();
+                }
+                 if (addedScore > 0) {
+
+                     String message = String.format("%s%-25s x%-4d = %4d", ChatColor.GOLD, fm(item.getType()), item.getAmount(), addedScore);
+                     MalmoServerPlugin.inst().getLogger().log(Level.INFO, fm(item.getType()) + " x" + item.getAmount() + " = " + addedScore);
+                     score += addedScore;
+                 }
+            }
+        }
+
+        setScore(score);
+        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Score for " + getPlayer().getName() + " is " + score);
+        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "*********************************************");
     }
+
+    public void calculateTrueSilentScore() {
+        int score = 0;
+        if (this.getProfession() == null) {
+            MalmoServerPlugin.inst().getLogger().log(Level.WARNING, "Profession is null for " + getPlayer().getName());
+            return;
+        }
+        for (ItemStack item : getPlayer().getInventory().getContents()) {
+            if (item != null) {
+                int addedScore = 0;
+                ItemStack item2 = new ItemStack(item.getType());
+                item2.setAmount(1);
+                if (this.getProfession().getTier1Items().contains(item2)) {
+                    addedScore += item.getAmount();
+                } else if (this.getProfession().getTier2Items().contains(item2)) {
+                    addedScore += 3 * item.getAmount();
+                } else if (this.getProfession().getTier3Items().contains(item2)) {
+                    addedScore += 10 * item.getAmount();
+                }
+                 if (addedScore > 0) {
+                     score += addedScore;
+                 }
+            }
+        }
+        setScore(score);
+        MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Score for " + getPlayer().getName() + " is " + score);
+    }
+
+    public String getCalculatedScore2() {
+        calculateSilentScore();
+        if (score >= 120) {
+            return ChatColor.GREEN + "" + score;
+        }
+        return "" +score;
+    }
+
+    public String getCalculatedScore() {
+        calculateScore();
+        if (score >= 120) {
+            return ChatColor.GREEN + "" + score;
+        }
+        return "" +score;
+    }
+
+    // public int getScore() {
+    //     return score;
+    // }
 
 
 }

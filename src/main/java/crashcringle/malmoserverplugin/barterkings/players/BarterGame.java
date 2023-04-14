@@ -65,7 +65,7 @@ public class BarterGame {
             findAllActiveTierItems();
             distributeItems();
             teleportPlayers();
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt begin 30m barterKings white &6&lBarter Kings! &e&l<minutes> &6minutes and &e&l<seconds> &6seconds left!");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt begin 30m barterKings white &6&lBarter Plus! &e&l<minutes> &6minutes and &e&l<seconds> &6seconds left!");
         } else {
             Bukkit.broadcastMessage(ChatColor.YELLOW + "Not all players are ready!");
         }
@@ -108,26 +108,21 @@ public class BarterGame {
         objective.setDisplayName(ChatColor.GOLD + "Role: " + ChatColor.YELLOW + profession.getName());
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         Score score1 = objective.getScore(ChatColor.GOLD + "" + ChatColor.BOLD + "Trading Goals");
-        score1.setScore(1);
+        score1.setScore(150);
         // Score score2 = objective.getScore(ChatColor.GOLD + "Collect them all!");
-        Score score2 = objective.getScore(ChatColor.GOLD + "Tier 1");
-        score1.setScore(0);
         for (ItemStack item : profession.getTier1Items()) {
-            Score score = objective.getScore(ChatColor.GREEN + fm(item.getType()) + " " + ChatColor.YELLOW + "x20" );
-            score.setScore(0);
+            Score score = objective.getScore(ChatColor.GREEN + fm(item.getType()) + " " + ChatColor.YELLOW );
+            score.setScore(1);
 
         }
-        Score score3 = objective.getScore(ChatColor.GOLD + "Tier 2");
-        score1.setScore(1);
+
         for (ItemStack item : profession.getTier2Items()) {
-            Score score = objective.getScore(ChatColor.DARK_GREEN + fm(item.getType()) + " " + ChatColor.YELLOW + "x10" );
-            score.setScore(0);
+            Score score = objective.getScore(ChatColor.DARK_GREEN + fm(item.getType()) + " " + ChatColor.YELLOW);
+            score.setScore(3);
         }
-        Score score4 = objective.getScore(ChatColor.GOLD + "Tier 3");
-        score1.setScore(0);
         for (ItemStack item : profession.getTier3Items()) {
-            Score score = objective.getScore(ChatColor.AQUA + fm(item.getType()) + " " + ChatColor.YELLOW + "x3" );
-            score.setScore(0);
+            Score score = objective.getScore(ChatColor.AQUA + fm(item.getType()) + " " + ChatColor.YELLOW  );
+            score.setScore(10);
         }
         return scoreboard;
     }
@@ -191,8 +186,14 @@ public class BarterGame {
         Bukkit.broadcastMessage(ChatColor.GOLD + "The winner is " + ChatColor.YELLOW + winner.getPlayer().getName() + ChatColor.GOLD + " with a score of " + ChatColor.YELLOW + winner.getScore());
         // The participant list should be sorted by score so we can print out the rankings
         for (int i = 1; i < getParticipants().size(); i++) {
+            ChatColor color;
             Participant participant = getParticipants().get(i);
-            Bukkit.broadcastMessage(ChatColor.GOLD + "Rank " + ChatColor.YELLOW + (i + 1) + ChatColor.GOLD + " is " + ChatColor.YELLOW + participant.getPlayer().getName() + ChatColor.GOLD + " with a score of " + ChatColor.YELLOW + participant.getScore());
+            if (participant.getScore() > 120) {
+                color = ChatColor.GREEN;
+            } else {
+                color = ChatColor.YELLOW;
+            }
+            Bukkit.broadcastMessage(ChatColor.GOLD + "Rank " + ChatColor.YELLOW + (i + 1) + ChatColor.GOLD + " is " + ChatColor.YELLOW + participant.getPlayer().getName() + ChatColor.GOLD + " with a score of " + color + participant.getScore());
         }
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt end barterKings");
         for (Participant participant : getParticipants()) {
@@ -374,6 +375,15 @@ public class BarterGame {
             int amt = 20;
             while (amt > 0) {
                 int amtToGive = amt >= 2 ? ((int) (Math.random() * amt)) : 1;
+                if (item.getType().toString().toUpperCase().contains("SWORD") || item.getType().toString().toUpperCase().contains("AXE") || item.getType().toString().toUpperCase().contains("BOW")
+                || item.getType().toString().toUpperCase().contains("HELMET") || item.getType().toString().toUpperCase().contains("CHESTPLATE") || item.getType().toString().toUpperCase().contains("LEGGINGS")
+                || item.getType().toString().toUpperCase().contains("BOOT") || item.getType().toString().toUpperCase().contains("TRIDENT") || item.getType().toString().toUpperCase().contains("ELYTRA") || item.getType().toString().toUpperCase().contains("SHIELD")
+                || item.getType().toString().toUpperCase().contains("HOE") || item.getType().toString().toUpperCase().contains("PICKAXE") || item.getType().toString().toUpperCase().contains("SHOVEL") || item.getType().toString().toUpperCase().contains("FISHING_ROD")
+                || item.getType().toString().toUpperCase().contains("CROSSBOW") || item.getType().toString().toUpperCase().contains("CARROT_ON_A_STICK") || item.getType().toString().toUpperCase().contains("FLINT_AND_STEEL") || item.getType().toString().toUpperCase().contains("SHEARS")
+                || item.getType().toString().toUpperCase().contains("SPADE") || item.getType().toString().toUpperCase().contains("HORSE_ARMOR") || item.getType().toString().toUpperCase().contains("STEW") || item.getType().toString().toUpperCase().contains("BUCKET") || item.getType().toString().toUpperCase().contains("BOAT")
+                ) {
+                    amtToGive = 1;
+                }
                 randomIndex =  (int) (Math.random() * getParticipants().size());
                 item.setAmount(amtToGive);
                 getParticipants().get(randomIndex).getPlayer().getInventory().addItem(item);
@@ -389,6 +399,15 @@ public class BarterGame {
             int amt = 10;
             while (amt > 0) {
                 int amtToGive = amt >= 2 ? ((int) (Math.random() * amt)) : 1;
+                if (item.getType().toString().toUpperCase().contains("SWORD") || item.getType().toString().toUpperCase().contains("AXE") || item.getType().toString().toUpperCase().contains("BOW")
+                || item.getType().toString().toUpperCase().contains("HELMET") || item.getType().toString().toUpperCase().contains("CHESTPLATE") || item.getType().toString().toUpperCase().contains("LEGGINGS")
+                || item.getType().toString().toUpperCase().contains("BOOT") || item.getType().toString().toUpperCase().contains("TRIDENT") || item.getType().toString().toUpperCase().contains("ELYTRA") || item.getType().toString().toUpperCase().contains("SHIELD")
+                || item.getType().toString().toUpperCase().contains("HOE") || item.getType().toString().toUpperCase().contains("PICKAXE") || item.getType().toString().toUpperCase().contains("SHOVEL") || item.getType().toString().toUpperCase().contains("FISHING_ROD")
+                || item.getType().toString().toUpperCase().contains("CROSSBOW") || item.getType().toString().toUpperCase().contains("CARROT_ON_A_STICK") || item.getType().toString().toUpperCase().contains("FLINT_AND_STEEL") || item.getType().toString().toUpperCase().contains("SHEARS")
+                || item.getType().toString().toUpperCase().contains("SPADE") || item.getType().toString().toUpperCase().contains("HORSE_ARMOR") || item.getType().toString().toUpperCase().contains("STEW") || item.getType().toString().toUpperCase().contains("BUCKET") || item.getType().toString().toUpperCase().contains("BOAT")
+            ) {
+                amtToGive = 1;
+            }
                 randomIndex =  (int) (Math.random() * getParticipants().size());
                 item.setAmount(amtToGive);
                 getParticipants().get(randomIndex).getPlayer().getInventory().addItem(item);
@@ -406,10 +425,10 @@ public class BarterGame {
                 int amtToGive = amt >= 2 ? ((int) (Math.random() * amt)) : 1;
                 if (item.getType().toString().toUpperCase().contains("SWORD") || item.getType().toString().toUpperCase().contains("AXE") || item.getType().toString().toUpperCase().contains("BOW")
                         || item.getType().toString().toUpperCase().contains("HELMET") || item.getType().toString().toUpperCase().contains("CHESTPLATE") || item.getType().toString().toUpperCase().contains("LEGGINGS")
-                        || item.getType().toString().toUpperCase().contains("BOOTS") || item.getType().toString().toUpperCase().contains("TRIDENT") || item.getType().toString().toUpperCase().contains("ELYTRA") || item.getType().toString().toUpperCase().contains("SHIELD")
+                        || item.getType().toString().toUpperCase().contains("BOOT") || item.getType().toString().toUpperCase().contains("TRIDENT") || item.getType().toString().toUpperCase().contains("ELYTRA") || item.getType().toString().toUpperCase().contains("SHIELD")
                         || item.getType().toString().toUpperCase().contains("HOE") || item.getType().toString().toUpperCase().contains("PICKAXE") || item.getType().toString().toUpperCase().contains("SHOVEL") || item.getType().toString().toUpperCase().contains("FISHING_ROD")
                         || item.getType().toString().toUpperCase().contains("CROSSBOW") || item.getType().toString().toUpperCase().contains("CARROT_ON_A_STICK") || item.getType().toString().toUpperCase().contains("FLINT_AND_STEEL") || item.getType().toString().toUpperCase().contains("SHEARS")
-                        || item.getType().toString().toUpperCase().contains("SPADE") || item.getType().toString().toUpperCase().contains("HORSE_ARMOR") || item.getType().toString().toUpperCase().contains("STEW") || item.getType().toString().toUpperCase().contains("BUCKET")
+                        || item.getType().toString().toUpperCase().contains("SPADE") || item.getType().toString().toUpperCase().contains("HORSE_ARMOR") || item.getType().toString().toUpperCase().contains("STEW") || item.getType().toString().toUpperCase().contains("BUCKET") || item.getType().toString().toUpperCase().contains("BOAT")
                 ) {
                     amtToGive = 1;
                 }
@@ -441,6 +460,7 @@ public class BarterGame {
 
         List<ItemStack> tier2 = new ArrayList<>();
         tier2.add(new ItemStack(Material.BREAD));
+        tier2.add(new ItemStack(Material.PUMPKIN));
 
         List<ItemStack> tier3 = new ArrayList<>();
         tier3.add(new ItemStack(Material.MUSHROOM_STEW));
@@ -453,7 +473,8 @@ public class BarterGame {
         tier1Fisher.add(new ItemStack(Material.TROPICAL_FISH));
 
         List<ItemStack> tier2Fisher = new ArrayList<>();
-        tier2Fisher.add(new ItemStack(Material.TADPOLE_BUCKET));
+        tier2Fisher.add(new ItemStack(Material.PUFFERFISH));
+        tier2Fisher.add(new ItemStack(Material.TURTLE_EGG));
 
         List<ItemStack> tier3Fisher = new ArrayList<>();
         tier3Fisher.add(new ItemStack(Material.OAK_BOAT));
@@ -481,8 +502,8 @@ public class BarterGame {
         tier1Blacksmith.add(new ItemStack(Material.COAL));
 
         List<ItemStack> tier2Blacksmith = new ArrayList<>();
-        tier2Blacksmith.add(new ItemStack(Material.IRON_SWORD));
-        tier2Blacksmith.add(new ItemStack(Material.GOLDEN_PICKAXE));
+        tier2Blacksmith.add(new ItemStack(Material.FLETCHING_TABLE));
+        tier2Blacksmith.add(new ItemStack(Material.SMITHING_TABLE));
 
         List<ItemStack> tier3Blacksmith = new ArrayList<>();
         tier3Blacksmith.add(new ItemStack(Material.DIAMOND_SWORD));
@@ -492,30 +513,28 @@ public class BarterGame {
         List<ItemStack> tier1Leatherworker = new ArrayList<>();
         tier1Leatherworker.add(new ItemStack(Material.LEATHER));
         tier1Leatherworker.add(new ItemStack(Material.STICK));
-        tier1Leatherworker.add(new ItemStack(Material.LEATHER_BOOTS));
+        tier1Leatherworker.add(new ItemStack(Material.LEAD));
 
         List<ItemStack> tier2Leatherworker = new ArrayList<>();
-        tier2Leatherworker.add(new ItemStack(Material.SADDLE));
+        tier2Leatherworker.add(new ItemStack(Material.COW_SPAWN_EGG));
         tier2Leatherworker.add(new ItemStack(Material.RABBIT_HIDE));
 
         List<ItemStack> tier3Leatherworker = new ArrayList<>();
-        tier3Leatherworker.add(new ItemStack(Material.COW_SPAWN_EGG));
+        tier3Leatherworker.add(new ItemStack(Material.SADDLE));
 
         setLeatherworker(new Profession("Leatherworker", tier1Leatherworker, tier2Leatherworker, tier3Leatherworker));
 
         List<ItemStack> tier1Mason = new ArrayList<>();
         tier1Mason.add(new ItemStack(Material.STONE));
-        tier1Mason.add(new ItemStack(Material.TERRACOTTA));
+        tier1Mason.add(new ItemStack(Material.QUARTZ_BLOCK));
         tier1Mason.add(new ItemStack(Material.GLASS));
 
         List<ItemStack> tier2Mason = new ArrayList<>();
-        //tier2Mason.add(new ItemStack(Material.GREEN_GLAZED_TERRACOTTA));
         tier2Mason.add(new ItemStack(Material.RED_GLAZED_TERRACOTTA));
         tier2Mason.add(new ItemStack(Material.BLUE_GLAZED_TERRACOTTA));
-        //tier2Mason.add(new ItemStack(Material.WHITE_GLAZED_TERRACOTTA));
 
         List<ItemStack> tier3Mason = new ArrayList<>();
-        tier3Mason.add(new ItemStack(Material.CHISELED_QUARTZ_BLOCK));
+        tier3Mason.add(new ItemStack(Material.STONE_PICKAXE));
 
         setMason(new Profession("Mason", tier1Mason, tier2Mason, tier3Mason));
 
@@ -525,11 +544,11 @@ public class BarterGame {
         tier1Shepherd.add(new ItemStack(Material.BLUE_DYE));
 
         List<ItemStack> tier2Shepherd = new ArrayList<>();
-        tier2Shepherd.add(new ItemStack(Material.SHEARS));
+        tier2Shepherd.add(new ItemStack(Material.SHEEP_SPAWN_EGG));
         tier2Shepherd.add(new ItemStack(Material.LOOM));
 
         List<ItemStack> tier3Shepherd = new ArrayList<>();
-        tier3Shepherd.add(new ItemStack(Material.SHEEP_SPAWN_EGG));
+        tier3Shepherd.add(new ItemStack(Material.SHEARS));
 
         setShepherd(new Profession("Shepherd", tier1Shepherd, tier2Shepherd, tier3Shepherd));
 
@@ -543,7 +562,7 @@ public class BarterGame {
         tier2Lumberjack.add(new ItemStack(Material.SPRUCE_LOG));
 
         List<ItemStack> tier3lumberjack = new ArrayList<>();
-        tier3lumberjack.add(new ItemStack(Material.WOODEN_AXE));
+        tier3lumberjack.add(new ItemStack(Material.DIAMOND_AXE));
 
         setLumberjack(new Profession("Lumberjack", tier1Lumberjack, tier2Lumberjack, tier3lumberjack));
 
@@ -591,14 +610,15 @@ public class BarterGame {
         }
         // Compare the scores of the participants to find the winner
         // Participant winner = getParticipants().get(0);
-        // for (Participant user : getParticipants()) {
-        //     if (user.getScore() > winner.getScore()) {
-        //         winner = user;
-        //     }
-        // }
-                // Create a sorted list of participants based on their score
+        // // for (Participant user : getParticipants()) {
+        // //     if (user.getScore() > winner.getScore()) {
+        // //         winner = user;
+        // //     }
+        // // }
+        // Create a sorted list of participants based on their score
 
         getParticipants().sort(Comparator.comparing(Participant::getScore).reversed());
+        
         winner = getParticipants().get(0);
     }
 

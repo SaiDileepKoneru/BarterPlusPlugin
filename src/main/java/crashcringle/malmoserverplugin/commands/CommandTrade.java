@@ -192,49 +192,49 @@ public class CommandTrade implements CommandExecutor {
                         sender.sendMessage(ChatColor.GREEN + "/help - Display this help message");
                     }
                     return true;    // Return true because the command was executed successfully
-                } else if (args[0].equalsIgnoreCase("openTrade")) {
-                    if (sender.hasPermission("malmoserverplugin.openTrade")) {
-                        if (sender instanceof Player) {
-                            Player player = (Player) sender;
-                            if (args.length == 2) {
-                                Player target = Bukkit.getPlayer(args[1]);
-                                if (target != null) {
-                                    if (target.isOnline()) {
-                                        if (player.getNearbyEntities(5,5,5).contains(target)) {
-                                            if (target != player) {
-                                                MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " is trading with " + target.getName());
-                                                player.openInventory(target.getInventory());
-                                                target.openInventory(player.getInventory());
-                                                player.sendMessage(ChatColor.GREEN + "You are now trading with " + target.getName());
-                                                target.sendMessage(ChatColor.GREEN + player.getName() + " is now trading with you");
-                                            } else {
-                                                player.sendMessage(ChatColor.RED + "You cannot trade with yourself");
-                                            }
-                                        } else {
-                                            player.sendMessage(ChatColor.RED + "The player you are trying to trade with is not nearby");
-                                            return true;
-                                        }
-                                    } else {
-                                        player.sendMessage(ChatColor.RED + "That player is not online");
-                                    }
-                                } else {
-                                    player.sendMessage(ChatColor.RED + "That player is not online");
-                                }
-                            } else {
-                                player.sendMessage(ChatColor.RED + "You must specify a player to trade with");
-                            }
-                        } else {
-                            sender.sendMessage(ChatColor.RED + "You must be a player to use this command");
-                        }
-                    }
-                    return true;
+                //else if (args[0].equalsIgnoreCase("openTrade")) {
+                //     if (sender.hasPermission("malmoserverplugin.openTrade")) {
+                //         if (sender instanceof Player) {
+                //             Player player = (Player) sender;
+                //             if (args.length == 2) {
+                //                 Player target = Bukkit.getPlayer(args[1]);
+                //                 if (target != null) {
+                //                     if (target.isOnline()) {
+                //                         if (player.getNearbyEntities(5,5,5).contains(target)) {
+                //                             if (target != player) {
+                //                                 MalmoServerPlugin.inst().getLogger().log(Level.INFO, player.getName() + " is trading with " + target.getName());
+                //                                 player.openInventory(target.getInventory());
+                //                                 target.openInventory(player.getInventory());
+                //                                 player.sendMessage(ChatColor.GREEN + "You are now trading with " + target.getName());
+                //                                 target.sendMessage(ChatColor.GREEN + player.getName() + " is now trading with you");
+                //                             } else {
+                //                                 player.sendMessage(ChatColor.RED + "You cannot trade with yourself");
+                //                             }
+                //                         } else {
+                //                             player.sendMessage(ChatColor.RED + "The player you are trying to trade with is not nearby");
+                //                             return true;
+                //                         }
+                //                     } else {
+                //                         player.sendMessage(ChatColor.RED + "That player is not online");
+                //                     }
+                //                 } else {
+                //                     player.sendMessage(ChatColor.RED + "That player is not online");
+                //                 }
+                //             } else {
+                //                 player.sendMessage(ChatColor.RED + "You must specify a player to trade with");
+                //             }
+                //         } else {
+                //             sender.sendMessage(ChatColor.RED + "You must be a player to use this command");
+                //         }
+                //     }
+                //     return true;
                 }  else if (args[0].equalsIgnoreCase("score")) {
                     if (args.length >= 2 && args[1].length() > 1) {
                         if (!(sender instanceof Player)) {
                             Player player = Bukkit.getPlayer(args[1]);
                             if (player != null) {
                                 if (BarterKings.barterGame.isParticipant(player)) {
-                                    player.sendMessage(ChatColor.GRAY + "Player: " + player.getName() + " score is: " + BarterKings.barterGame.getParticipant(player).getCalculatedScore());
+                                    MalmoServerPlugin.inst().getLogger().log(Level.INFO, ChatColor.GRAY + "Player: " + player.getName() + "(" + BarterKings.barterGame.getParticipant(player).getProfession().getName()+") score is: " + BarterKings.barterGame.getParticipant(player).getCalculatedScore2());
                                     return true;
                                 } else {
                                     player.sendMessage(ChatColor.RED + "They are not in the game");

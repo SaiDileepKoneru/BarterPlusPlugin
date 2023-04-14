@@ -10,6 +10,8 @@ import org.json.simple.JSONObject;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
 import crashcringle.malmoserverplugin.TradeMenu;
+import crashcringle.malmoserverplugin.barterkings.BarterKings;
+import crashcringle.malmoserverplugin.barterkings.players.Participant;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController.RequestStatus;
 import java.sql.Timestamp;
 import java.util.logging.Level;
@@ -32,7 +34,8 @@ public class TradeRequest {
     private Timestamp beginTimestamp;
     private int gameID = 0;
     private Timestamp finishedTimestamp;
-
+    int[] initialScores = new int[2];
+    int[] finalScores = new int[2];
     String requestID = "";
 
     public TradeRequest(Player requester, Player requested, Trade trade) {
@@ -44,7 +47,9 @@ public class TradeRequest {
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "New Trade via Cmd: " + requestID + "| " + requester.getName() + "---> " + requested.getName() + ": " + trade.getOfferString());
         this.requestID = requester.getName() + requested.getName() + beginTimestamp.toString();
         this.finishedTimestamp = new Timestamp(0);
-
+        BarterKings.barterGame.getParticipant(requester).calculateTrueSilentScore();
+        BarterKings.barterGame.getParticipant(requested).calculateTrueSilentScore();
+        this.initialScores = new int[]{BarterKings.barterGame.getParticipant(requester).getScore(), BarterKings.barterGame.getParticipant(requester).getScore()};
     }
 
     public TradeRequest(Player requester, Player requested) {
@@ -54,6 +59,9 @@ public class TradeRequest {
         this.finishedTimestamp = new Timestamp(0);
         this.requestID = requester.getName() + requested.getName() + beginTimestamp.getTime();
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "New Trade via Menu: " + requestID + "| " + requester.getName() + "---> " + requested.getName());
+        BarterKings.barterGame.getParticipant(requester).calculateTrueSilentScore();
+        BarterKings.barterGame.getParticipant(requested).calculateTrueSilentScore();
+        this.initialScores = new int[]{BarterKings.barterGame.getParticipant(requester).getScore(), BarterKings.barterGame.getParticipant(requested).getScore()};
         this.createTradeMenu();
 
     }
@@ -65,6 +73,17 @@ public class TradeRequest {
         tradeReqJson.put("hasMenu", hasMenu());
         tradeReqJson.put("beginTimestamp", getBeginTime().toString());
         tradeReqJson.put("endTimestamp", getFinishTime().toString());
+        tradeReqJson.put("beginScores", getBeginTime().toString());
+        tradeReqJson.put("endScores", getBeginTime().toString());
+        JSONObject beginScores = new JSONObject();
+        beginScores.put("requester", getInitialScores()[0]);
+        beginScores.put("requested", getInitialScores()[1]);
+        tradeReqJson.put("beginScores", beginScores);
+        JSONObject endScores = new JSONObject();
+        endScores.put("requester", getFinalScores()[0]);
+        endScores.put("requested", getFinalScores()[1]);
+        tradeReqJson.put("endScores", endScores);
+
         tradeReqJson.put("status", getRequestStatus().toString());
         JSONArray offer = new JSONArray();
         JSONArray request = new JSONArray();
@@ -154,6 +173,9 @@ public class TradeRequest {
                 MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Request: " + requestID + " failed");
             }
             this.finishedTimestamp = new Timestamp(System.currentTimeMillis());
+            BarterKings.barterGame.getParticipant(requester).calculateTrueSilentScore();
+            BarterKings.barterGame.getParticipant(requested).calculateTrueSilentScore();
+            this.finalScores = new int[]{BarterKings.barterGame.getParticipant(requester).getScore(), BarterKings.barterGame.getParticipant(requested).getScore()};
         }
     }
 
@@ -367,5 +389,22 @@ public class TradeRequest {
     public void setRequestStatus(RequestStatus requestStatus) {
         this.requestStatus = requestStatus;
     }
+
+    public int[] getInitialScores() {
+        return this.initialScores;
+    }
+
+    public void setInitialScores(int[] initialScores) {
+        this.initialScores = initialScores;
+    }
+
+    public int[] getFinalScores() {
+        return this.finalScores;
+    }
+
+    public void setFinalScores(int[] finalScores) {
+        this.finalScores = finalScores;
+    }
+
 
 }
