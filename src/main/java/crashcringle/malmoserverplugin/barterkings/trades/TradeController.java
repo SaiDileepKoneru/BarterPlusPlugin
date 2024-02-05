@@ -1,5 +1,9 @@
 package crashcringle.malmoserverplugin.barterkings.trades;
 
+import crashcringle.malmoserverplugin.MalmoServerPlugin;
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.api.npc.NPCRegistry;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -13,8 +17,8 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class TradeController {
-    public static Map<Player, ArrayList<TradeRequest>> outgoingRequests;
-    public static Map<Player, ArrayList<TradeRequest>> incomingRequests;
+    public static Map<String, ArrayList<TradeRequest>> outgoingRequests;
+    public static Map<String, ArrayList<TradeRequest>> incomingRequests;
 
     private static ArrayList<TradeRequest> allRequests;
 
@@ -50,9 +54,10 @@ public class TradeController {
             }
         }
     }
-    public void sendTradeRequest(Player requester, Player requested, Trade trade) {
+    public static TradeRequest sendTradeRequest(Player requester, Player requested, Trade trade) {
         if (!hasActiveTradeRequest(requester, requested)) {
-            addTradeRequest(new TradeRequest(requester, requested, trade));
+            TradeRequest request = new TradeRequest(requester, requested, trade);
+            addTradeRequest(request);
             HoverEvent acceptHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GREEN + "Click to Accept!").create());
             HoverEvent denyHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.RED + "Click to Deny").create());
             HoverEvent cancelHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.RED + "Click to Cancel").create());
@@ -82,28 +87,92 @@ public class TradeController {
             message.setHoverEvent(cancelHover);
             message.setClickEvent(cancelClick);
             requester.spigot().sendMessage(message);
+            return request;
         } else {
             requester.sendMessage(ChatColor.DARK_RED + "You have already requested an active trade with " + requested.getName());
+            return null;
         }
+    }
 
+    public static TradeRequest sendTradeRequest(String requesterStr, String requestedStr, Trade trade) {
+        Player requester = null, requested = null;
+        for (NPC npc : CitizensAPI.getNPCRegistry()) {
+            if (npc.getName().equalsIgnoreCase(requestedStr))
+                requested = (Player) npc.getEntity();
+            if (npc.getName().equalsIgnoreCase(requesterStr))
+                requester = (Player) npc.getEntity();
+        }
+        if (requester == null || requested == null) {
+            MalmoServerPlugin.inst().getLogger().info("NPCs not found");
+            return null;
+        }
+        if (!hasActiveTradeRequest(requester, requested)) {
+            TradeRequest request = new TradeRequest(requester, requested, trade);
+            addTradeRequest(request);
+            HoverEvent acceptHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.GREEN + "Click to Accept!").create());
+            HoverEvent denyHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.RED + "Click to Deny").create());
+            HoverEvent cancelHover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.RED + "Click to Cancel").create());
+            ClickEvent acceptClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/barter accept "+requester.getName());
+            ClickEvent denyClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/barter deny "+requester.getName());
+            ClickEvent cancelClick = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/barter cancel "+requested.getName());
+
+            TextComponent message = new TextComponent(ChatColor.AQUA + requester.getName() + " has requested a trade with you");
+            message.setHoverEvent(acceptHover);
+            message.setClickEvent(acceptClick);
+            requested.spigot().sendMessage(message);
+            requested.sendMessage(ChatColor.GREEN + "They want to trade " + trade.getOfferString());
+
+            message = new TextComponent(ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Click Here" + ChatColor.GREEN  + " or Type /barter accept " + ChatColor.BOLD + requester.getName() + ChatColor.GREEN + " to accept the trade");
+            message.setHoverEvent(acceptHover);
+            message.setClickEvent(acceptClick);
+            requested.spigot().sendMessage(message);
+
+            message = new TextComponent(ChatColor.RED + "" + ChatColor.UNDERLINE + "Click Here" + ChatColor.RED + " or Type /barter deny " + ChatColor.BOLD + requester.getName() + ChatColor.RED + " to deny the trade");
+            message.setHoverEvent(denyHover);
+            message.setClickEvent(denyClick);
+            requested.spigot().sendMessage(message);
+
+            requester.sendMessage(ChatColor.AQUA + "You have requested a trade with " + ChatColor.BOLD + requested.getName());
+            requester.sendMessage(ChatColor.GREEN + "You are trading " + trade.getOfferedString());
+            message = new TextComponent(ChatColor.RED + "" + ChatColor.UNDERLINE + "Click Here " + ChatColor.RED +  "or type /barter cancel " + ChatColor.BOLD + requested.getName() + ChatColor.RED + " to cancel the trade");
+            message.setHoverEvent(cancelHover);
+            message.setClickEvent(cancelClick);
+            requester.spigot().sendMessage(message);
+            return request;
+        } else {
+            requester.sendMessage(ChatColor.DARK_RED + "You have already requested an active trade with " + requested.getName());
+            return null;
+        }
     }
 
     public static void acceptTradeRequest(TradeRequest tradeRequest) {
             tradeRequest.accept();
     }
 
-    public void acceptRecentTrade(Player player) {
-        if (incomingRequests.containsKey(player)) {
-            TradeRequest request = Collections.max(incomingRequests.get(player), Comparator.comparing(TradeRequest::getBeginTime));
+    public static TradeRequest acceptRecentTrade(Player player) {
+        if (incomingRequests.containsKey(player.getName())) {
+            TradeRequest request = Collections.max(incomingRequests.get(player.getName()), Comparator.comparing(TradeRequest::getBeginTime));
             acceptTradeRequest(request);
+            return request;
         } else {
             player.sendMessage(ChatColor.DARK_RED + "You have no recent trade requests");
+            return null;
         }
     }
 
-    public void acceptTrade(Player requested, Player requester) {
-        if (incomingRequests.containsKey(requested)) {
-            for (TradeRequest request : incomingRequests.get(requested)) {
+    public static TradeRequest acceptRecentTrade(String player) {
+        if (incomingRequests.containsKey(player)) {
+            TradeRequest request = Collections.max(incomingRequests.get(player), Comparator.comparing(TradeRequest::getBeginTime));
+            acceptTradeRequest(request);
+            return request;
+        } else {
+            return null;
+        }
+    }
+
+    public static void acceptTrade(Player requested, Player requester) {
+        if (incomingRequests.containsKey(requested.getName())) {
+            for (TradeRequest request : incomingRequests.get(requested.getName())) {
                 if (request.getRequester().equals(requester) && !request.isCompleted()) {
                     acceptTradeRequest(request);
                 } else {
@@ -112,6 +181,16 @@ public class TradeController {
             }
         } else {
             requested.sendMessage(ChatColor.DARK_RED + "You have no trade requests from " + requester.getName());
+        }
+    }
+
+    public static void acceptTrade(String requested, String requester) {
+        if (incomingRequests.containsKey(requested)) {
+            for (TradeRequest request : incomingRequests.get(requested)) {
+                if (request.getRequester().equals(requester) && !request.isCompleted()) {
+                    acceptTradeRequest(request);
+                }
+            }
         }
     }
 
@@ -129,13 +208,27 @@ public class TradeController {
      * Denies the latest trade request to a player
      * @param player
      */
-    public void denyRecentTrade(Player player) {
+    public static TradeRequest denyRecentTrade(Player player) {
+
+        if (incomingRequests.containsKey(player.getName())) {
+            TradeRequest request = Collections.max(incomingRequests.get(player.getName()), Comparator.comparing(TradeRequest::getBeginTime));
+            declineTradeRequest(request);
+            return request;
+        } else {
+            player.sendMessage(ChatColor.DARK_RED + "You have no recent active trade requests");
+            return null;
+        }
+    }
+
+    public static TradeRequest denyRecentTrade(String player) {
 
         if (incomingRequests.containsKey(player)) {
             TradeRequest request = Collections.max(incomingRequests.get(player), Comparator.comparing(TradeRequest::getBeginTime));
             declineTradeRequest(request);
-        } else {
-            player.sendMessage(ChatColor.DARK_RED + "You have no recent active trade requests");
+            return request;
+        }
+        else {
+            return null;
         }
     }
 
@@ -157,6 +250,17 @@ public class TradeController {
             requested.sendMessage(ChatColor.DARK_RED + "You have never received a trade from " + requester.getName());
         }
     }
+
+    public void denyTrade(String requested, String requester) {
+        if (incomingRequests.containsKey(requested)) {
+            for (TradeRequest request : incomingRequests.get(requested)) {
+                if (request.getRequester().equals(requester) && !request.isCompleted()) {
+                    declineTradeRequest(request);
+                    return;
+                }
+            }
+        }
+    }
     public static void completeTradeRequest(TradeRequest tradeRequest) {
             tradeRequest.setCompleted(true);
             tradeRequest.getRequested().sendMessage(ChatColor.GREEN + "You have completed the trade request from " + tradeRequest.getRequester().getName());
@@ -171,20 +275,33 @@ public class TradeController {
        } else {
             tradeRequest.getRequester().sendMessage(ChatColor.GOLD + "You have already completed or cancelled this trade request");
         }
+
     }
 
-    public void cancelRecentTrade(Player player) {
+    public static TradeRequest cancelRecentTrade(Player player) {
+        if (outgoingRequests.containsKey(player.getName())) {
+            TradeRequest request = Collections.max(outgoingRequests.get(player.getName()), Comparator.comparing(TradeRequest::getBeginTime));
+            cancelTradeRequest(request);
+            return request;
+        } else {
+            player.sendMessage(ChatColor.DARK_RED + "You have not made any outgoing trade requests");
+            return null;
+        }
+    }
+
+    public static TradeRequest cancelRecentTrade(String player) {
         if (outgoingRequests.containsKey(player)) {
             TradeRequest request = Collections.max(outgoingRequests.get(player), Comparator.comparing(TradeRequest::getBeginTime));
             cancelTradeRequest(request);
+            return request;
         } else {
-            player.sendMessage(ChatColor.DARK_RED + "You have not made any outgoing trade requests");
+            return null;
         }
     }
 
     public void cancelTrade(Player requester, Player requested) {
-        if (outgoingRequests.containsKey(requester)) {
-            for (TradeRequest request : outgoingRequests.get(requester)) {
+        if (outgoingRequests.containsKey(requester.getName())) {
+            for (TradeRequest request : outgoingRequests.get(requester.getName())) {
                 if (request.getRequested().equals(requested) && !request.isCompleted()) {
                     cancelTradeRequest(request);
                     return;
@@ -206,20 +323,20 @@ public class TradeController {
             e.printStackTrace();
         }
         getAllRequests().add(tradeRequest);
-        if (outgoingRequests.containsKey(tradeRequest.getRequester())) {
-            outgoingRequests.get(tradeRequest.getRequester()).add(tradeRequest);
+        if (outgoingRequests.containsKey(tradeRequest.getRequester().getName())) {
+            outgoingRequests.get(tradeRequest.getRequester().getName()).add(tradeRequest);
         } else {
             ArrayList<TradeRequest> requests = new ArrayList<>();
             requests.add(tradeRequest);
-            outgoingRequests.put(tradeRequest.getRequester(), requests);
+            outgoingRequests.put(tradeRequest.getRequester().getName(), requests);
         }
 
-        if (incomingRequests.containsKey(tradeRequest.getRequested())) {
-            incomingRequests.get(tradeRequest.getRequested()).add(tradeRequest);
+        if (incomingRequests.containsKey(tradeRequest.getRequested().getName())) {
+            incomingRequests.get(tradeRequest.getRequested().getName()).add(tradeRequest);
         } else {
             ArrayList<TradeRequest> requests = new ArrayList<>();
             requests.add(tradeRequest);
-            incomingRequests.put(tradeRequest.getRequested(), requests);
+            incomingRequests.put(tradeRequest.getRequested().getName(), requests);
         }
 //        outgoingRequests.computeIfPresent(tradeRequest.getRequester(), (k, v) -> {
 //            v.add(tradeRequest);
@@ -236,8 +353,8 @@ public class TradeController {
     }
 
     public static boolean hasActiveTradeRequest(Player requester, Player requested) {
-        if (outgoingRequests.containsKey(requester) && incomingRequests.containsKey(requested)) {
-            for (TradeRequest tradeRequest : outgoingRequests.get(requester)) {
+        if (outgoingRequests.containsKey(requester.getName()) && incomingRequests.containsKey(requested.getName())) {
+            for (TradeRequest tradeRequest : outgoingRequests.get(requester.getName())) {
                 if (tradeRequest.getRequested().equals(requested) && !tradeRequest.isCompleted()) {
                     return true;
                 }
@@ -247,8 +364,8 @@ public class TradeController {
     }
 
     public static TradeRequest getActiveTradeRequest(Player requester, Player requested) {
-        if (outgoingRequests.containsKey(requester) && incomingRequests.containsKey(requested)) {
-            for (TradeRequest tradeRequest : outgoingRequests.get(requester)) {
+        if (outgoingRequests.containsKey(requester.getName()) && incomingRequests.containsKey(requested.getName())) {
+            for (TradeRequest tradeRequest : outgoingRequests.get(requester.getName())) {
                 if (tradeRequest.getRequested().equals(requested) && !tradeRequest.isCompleted()) {
                     return tradeRequest;
                 }
@@ -258,12 +375,12 @@ public class TradeController {
     }
 
     public static boolean hasRecentTradeRequest(Player player) {
-        return incomingRequests.containsKey(player);
+        return incomingRequests.containsKey(player.getName());
     }
 
     public static TradeRequest getRecentTradeRequest(Player player) {
-        if (incomingRequests.containsKey(player)) {
-            return Collections.max(incomingRequests.get(player), Comparator.comparing(TradeRequest::getBeginTime));
+        if (incomingRequests.containsKey(player.getName())) {
+            return Collections.max(incomingRequests.get(player.getName()), Comparator.comparing(TradeRequest::getBeginTime));
         }
         return null;
     }
@@ -271,11 +388,11 @@ public class TradeController {
     //Method to get all the trade requests involving a player
     public ArrayList<TradeRequest> getAllPlayerTradeRequests(Player player) {
         ArrayList<TradeRequest> requests = new ArrayList<>();
-        if (incomingRequests.containsKey(player)) {
-            requests.addAll(incomingRequests.get(player));
+        if (incomingRequests.containsKey(player.getName())) {
+            requests.addAll(incomingRequests.get(player.getName()));
         }
-        if (outgoingRequests.containsKey(player)) {
-            requests.addAll(outgoingRequests.get(player));
+        if (outgoingRequests.containsKey(player.getName())) {
+            requests.addAll(outgoingRequests.get(player.getName()));
         }
         return requests;
     }

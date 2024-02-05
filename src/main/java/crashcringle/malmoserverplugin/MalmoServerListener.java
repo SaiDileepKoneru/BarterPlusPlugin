@@ -102,6 +102,8 @@ public class MalmoServerListener implements Listener {
     public void onPlayerInteract(PlayerInteractEntityEvent event) {
         MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player interacted with " + event.getRightClicked().getName());
         if (event.getRightClicked() instanceof Player) {
+            if (event.getRightClicked().hasMetadata("NPC"))
+                return;
             Player player = event.getPlayer();
             Player target = (Player) event.getRightClicked();
 

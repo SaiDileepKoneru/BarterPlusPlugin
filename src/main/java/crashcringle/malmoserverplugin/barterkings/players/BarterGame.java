@@ -1,9 +1,13 @@
 package crashcringle.malmoserverplugin.barterkings.players;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
+import crashcringle.malmoserverplugin.barterkings.BarterKings;
+import crashcringle.malmoserverplugin.barterkings.npc.BarterTrait;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeRequest;
 import crashcringle.malmoserverplugin.data.LegacyData;
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -31,11 +35,11 @@ public class BarterGame {
 
     private static List<Participant> participants;
 
+    private static List<NPC> npcs;
     private Profession Farmer;
     private Profession Blacksmith;
     private Profession Fisherman;
     private Profession Butcher;
-
     private Profession Leatherworker;
     private Profession Mason;
     private Profession Shepherd;
@@ -300,6 +304,15 @@ public class BarterGame {
         return null;
     }
 
+    public  Participant getParticipant(String name) {
+        for (Participant participant : getParticipants()) {
+            if (participant.getName().equals(name)) {
+                return participant;
+            }
+        }
+        return null;
+    }
+
     public  boolean isParticipant(Player player) {
         for (Participant participant : getParticipants()) {
             if (participant.getPlayer().equals(player)) {
@@ -357,6 +370,11 @@ public class BarterGame {
     }
 
     public void setUpParticipants() {
+        for (NPC npc : CitizensAPI.getNPCRegistry()) {
+            if (npc.hasTrait(BarterTrait.class)) {
+                participants.add(new Participant((Player) npc.getEntity()));
+            }
+        }
         for (Participant participant : getParticipants()) {
             participant.setProfession(getRandomProfession());
             MalmoServerPlugin.inst().getLogger().info("Player " + participant.getPlayer().getName() + " has been assigned the profession " + participant.getProfession().getName());
@@ -553,13 +571,13 @@ public class BarterGame {
         setShepherd(new Profession("Shepherd", tier1Shepherd, tier2Shepherd, tier3Shepherd));
 
         List<ItemStack> tier1Lumberjack = new ArrayList<>();
-        tier1Lumberjack.add(new ItemStack(Material.OAK_PLANKS));
-        tier1Lumberjack.add(new ItemStack(Material.SPRUCE_PLANKS));
-        tier1Lumberjack.add(new ItemStack(Material.BIRCH_PLANKS));
+        tier1Lumberjack.add(new ItemStack(Material.OAK_LOG));
+        tier1Lumberjack.add(new ItemStack(Material.SPRUCE_LOG));
+        tier1Lumberjack.add(new ItemStack(Material.BIRCH_LOG));
 
         List<ItemStack> tier2Lumberjack = new ArrayList<>();
-        tier2Lumberjack.add(new ItemStack(Material.OAK_LOG));
-        tier2Lumberjack.add(new ItemStack(Material.SPRUCE_LOG));
+        tier2Lumberjack.add(new ItemStack(Material.SPRUCE_PLANKS));
+        tier2Lumberjack.add(new ItemStack(Material.OAK_PLANKS));
 
         List<ItemStack> tier3lumberjack = new ArrayList<>();
         tier3lumberjack.add(new ItemStack(Material.DIAMOND_AXE));

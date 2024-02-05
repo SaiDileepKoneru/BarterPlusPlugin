@@ -1,17 +1,16 @@
 package crashcringle.malmoserverplugin.barterkings.trades;
 
+import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.hibernate.SessionFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
 import crashcringle.malmoserverplugin.TradeMenu;
 import crashcringle.malmoserverplugin.barterkings.BarterKings;
-import crashcringle.malmoserverplugin.barterkings.players.Participant;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController.RequestStatus;
 import java.sql.Timestamp;
 import java.util.logging.Level;
@@ -23,7 +22,11 @@ public class TradeRequest {
 
     private Player requester;
     private Player requested;
+
+    private ItemStack[] requesterInventory;
+    private ItemStack[] requestedInventory;
     private boolean accepted = false;
+    @Getter
     private Trade trade;
     private boolean completed = false;
 
@@ -87,6 +90,8 @@ public class TradeRequest {
         tradeReqJson.put("status", getRequestStatus().toString());
         JSONArray offer = new JSONArray();
         JSONArray request = new JSONArray();
+        JSONArray requestedInventory = new JSONArray();
+        JSONArray requesterInventory = new JSONArray();
         if (getTrade() != null) {
             try {
                 for (ItemStack item : getTrade().getOfferedItems()) {
@@ -100,6 +105,26 @@ public class TradeRequest {
                     itemJSON.put("resource", fm(item.getType()));
                     itemJSON.put("amount", item.getAmount());
                     request.add(itemJSON);
+                }
+                if (this.isCompleted()) {
+                    for (ItemStack item : getRequestedInventory()) {
+                        if (item != null) {
+                            JSONObject itemJSON = new JSONObject();
+                            itemJSON.put("resource", fm(item.getType()));
+                            itemJSON.put("amount", item.getAmount());
+                            requestedInventory.add(itemJSON);
+                        }
+                    }
+                    for (ItemStack item : getRequesterInventory()) {
+                        if (item != null) {
+                            JSONObject itemJSON = new JSONObject();
+                            itemJSON.put("resource", fm(item.getType()));
+                            itemJSON.put("amount", item.getAmount());
+                            requesterInventory.add(itemJSON);
+                        }
+                    }
+                    tradeReqJson.put("requestedInventory", requestedInventory);
+                    tradeReqJson.put("requesterInventory", requesterInventory);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -169,6 +194,8 @@ public class TradeRequest {
         if (completed) {
             if (accepted) {
                 MalmoServerPlugin.inst().getLogger().log(Level.INFO,  "Request: " + requestID + " completed");
+                setRequestedInventory(requested.getInventory().getContents());
+                setRequesterInventory(requester.getInventory().getContents());
             } else {
                 MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Request: " + requestID + " failed");
             }
@@ -177,10 +204,6 @@ public class TradeRequest {
             BarterKings.barterGame.getParticipant(requested).calculateTrueSilentScore();
             this.finalScores = new int[]{BarterKings.barterGame.getParticipant(requester).getScore(), BarterKings.barterGame.getParticipant(requested).getScore()};
         }
-    }
-
-    public Trade getTrade() {
-        return trade;
     }
 
     public void setTrade(Trade trade) {
@@ -407,4 +430,19 @@ public class TradeRequest {
     }
 
 
+    public ItemStack[] getRequesterInventory() {
+        return requesterInventory;
+    }
+
+    public void setRequesterInventory(ItemStack[] requesterInventory) {
+        this.requesterInventory = requesterInventory;
+    }
+
+    public ItemStack[] getRequestedInventory() {
+        return requestedInventory;
+    }
+
+    public void setRequestedInventory(ItemStack[] requestedInventory) {
+        this.requestedInventory = requestedInventory;
+    }
 }

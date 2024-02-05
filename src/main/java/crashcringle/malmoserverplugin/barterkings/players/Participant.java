@@ -63,6 +63,11 @@ public class Participant  {
     }
 
     public Player getPlayer() {
+        if (player != null) {
+            boolean isCitizensNPC = player.hasMetadata("NPC");
+            if (isCitizensNPC)
+                return player;
+        }
         if (player == Bukkit.getPlayer(name)) {
             return player;
         } else {

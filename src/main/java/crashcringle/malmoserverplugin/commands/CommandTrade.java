@@ -5,6 +5,8 @@ import crashcringle.malmoserverplugin.barterkings.BarterKings;
 import crashcringle.malmoserverplugin.barterkings.trades.Trade;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeRequest;
 
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -15,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class CommandTrade implements CommandExecutor {
@@ -55,7 +58,94 @@ public class CommandTrade implements CommandExecutor {
                 }
                 return true;    // Return true because the command was executed successfully
             } else {
-                if (args[0].equalsIgnoreCase("readyUp")) {
+                if (args[0].equalsIgnoreCase("admin-trade")) {
+                    MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Admin Trade Command");
+                    if (args.length == 7) {
+                        Player requester = null, requested = null;
+                        for (NPC npc : CitizensAPI.getNPCRegistry()) {
+                            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "NPC: " + npc.getName());
+
+                            if (npc.getName().equalsIgnoreCase(args[1]))
+                                requested = (Player) npc.getEntity();
+                            if (npc.getName().equalsIgnoreCase(args[6]))
+                                requester = (Player) npc.getEntity();
+                        }
+                        if (requester == null || requested == null) {
+                            MalmoServerPlugin.inst().getLogger().info("NPCs not found");
+                        }
+                        if (requested != null && requester != null) {
+                            try {
+                                if (requester.getInventory().containsAtLeast(new ItemStack(Material.getMaterial(args[2].toUpperCase())), Integer.parseInt(args[3]))) {
+                                    BarterKings.controller.sendTradeRequest(requester, requested, new Trade(new ItemStack(Material.getMaterial(args[2].toUpperCase())), Integer.parseInt(args[3]), new ItemStack(Material.getMaterial(args[4].toUpperCase())), Integer.parseInt(args[5])));
+                                } else {
+                                    MalmoServerPlugin.inst().getLogger().log(Level.INFO, "You do not have enough of that item to trade");
+                                }
+                            } catch (IllegalArgumentException e) {
+                                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Invalid Item");
+                                return false;
+                            }
+                        } else {
+                            MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Player is null");
+                            try {
+                                BarterKings.controller.sendTradeRequest(args[6], args[1], new Trade(new ItemStack(Material.getMaterial(args[2].toUpperCase())), Integer.parseInt(args[3]), new ItemStack(Material.getMaterial(args[4].toUpperCase())), Integer.parseInt(args[5])));
+                            } catch (IllegalArgumentException e) {
+                                MalmoServerPlugin.inst().getLogger().log(Level.INFO, "Invalid Item");
+                                return false;
+                            }
+                        }
+                    }
+                } else if (args[0].equalsIgnoreCase("admin-accept")) {
+                    if (args.length == 3) {
+                        String requester = args[1];
+                        String requested = args[2];
+                        if (requester != null) {
+                            BarterKings.controller.acceptTrade(requester, requested);
+                        }
+                    } else if (args.length == 2) {
+                        String requested = args[1];
+                        if (requested != null) {
+                                BarterKings.controller.acceptRecentTrade(requested);
+                        }
+                    }
+                } else if (args[0].equalsIgnoreCase("admin-deny")) {
+                    if (args.length == 3) {
+                        String requester = args[1];
+                        String requested = args[2];
+                        if (requester != null) {
+                            BarterKings.controller.denyTrade(requester, requested);
+                        }
+                    } else if (args.length == 2) {
+                        String requested = args[1];
+                        if (requested != null) {
+                            BarterKings.controller.denyRecentTrade(requested);
+                        }
+                    }
+                } else if (args[0].equalsIgnoreCase("admin-cancel")) {
+                    if (args.length == 3) {
+                        String requested = args[1];
+                        String requester = args[2];
+                        if (requested != null) {
+                        }
+                    } else if (args.length == 2) {
+                        String requested = args[1];
+                        if (requested != null) {
+                            BarterKings.controller.cancelRecentTrade(requested);
+                        }
+                    }
+                } else if (args[0].equalsIgnoreCase("admin-unready")) {
+                    if (args.length == 2) {
+                        Player player = Bukkit.getPlayer(args[1]);
+                        if (player != null) {
+                            if (player.isOnline()) {
+                                if (player != sender) {
+                                    if (sender instanceof Player) {
+                                        BarterKings.barterGame.unready(player);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    } else if (args[0].equalsIgnoreCase("readyUp")) {
                     if (sender.hasPermission("malmoserverplugin.ready")) {
                         if (BarterKings.barterGame.inProgress() ) {
                             sender.sendMessage(ChatColor.RED + "A game is already in progress");
@@ -231,7 +321,8 @@ public class CommandTrade implements CommandExecutor {
                 }  else if (args[0].equalsIgnoreCase("score")) {
                     if (args.length >= 2 && args[1].length() > 1) {
                         if (!(sender instanceof Player)) {
-                            Player player = Bukkit.getPlayer(args[1]);
+//                            Player player = Bukkit.getPlayer(args[1]);
+                            Player player = BarterKings.barterGame.getParticipant(args[1]).getPlayer();
                             if (player != null) {
                                 if (BarterKings.barterGame.isParticipant(player)) {
                                     MalmoServerPlugin.inst().getLogger().log(Level.INFO, ChatColor.GRAY + "Player: " + player.getName() + "(" + BarterKings.barterGame.getParticipant(player).getProfession().getName()+") score is: " + BarterKings.barterGame.getParticipant(player).getCalculatedScore2());
@@ -303,7 +394,7 @@ public class CommandTrade implements CommandExecutor {
                                     }
                                 }
                             }
-                        } else {
+                        }   else {
                             sender.sendMessage(ChatColor.RED + "/barter trade <player> <Item You wish to Offer> <amount> <Item You're Requesting> <amount>");
                             sender.sendMessage(ChatColor.RED + "You must specify a player to trade with, the item you want to offer, the amount of that item, the item you want to receive, and the amount of that item you want to receive");
                         }
