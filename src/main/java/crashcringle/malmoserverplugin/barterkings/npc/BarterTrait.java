@@ -60,8 +60,9 @@ public class BarterTrait extends Trait {
             if (BarterKings.barterGame.inProgress()) {
                 // Get a random item out the npcs inventory to trade
                 Player npcPlayer = (Player) event.getNPC().getEntity();
-                npcPlayer.chat("I have " + npcPlayer.getInventory().getContents().length + " items in my inventory!");
                 ItemStack[] npcInventory = npcPlayer.getInventory().getContents();
+                npcPlayer.chat("Hey!!");
+
                 int counter = 10;
                 ItemStack npcItem;
                 do {
@@ -86,12 +87,12 @@ public class BarterTrait extends Trait {
 
     @EventHandler
     public void onChat(AsyncPlayerChatEvent event) {
-        if (event.getMessage().toUpperCase().contains(npc.getName().toUpperCase())) {
-            npc.getNavigator().setTarget(event.getPlayer().getLocation());
-            MalmoServerPlugin.inst().getLogger().info("NPC is now targeting " + event.getPlayer().getName());
-        } else {
-            MalmoServerPlugin.inst().getLogger().info("NPC is not targeting " + event.getPlayer().getName());
-        }
+//        if (event.getMessage().toUpperCase().contains(npc.getName().toUpperCase())) {
+//            npc.getNavigator().setTarget(event.getPlayer().getLocation());
+//            MalmoServerPlugin.inst().getLogger().info("NPC is now targeting " + event.getPlayer().getName());
+//        } else {
+//            MalmoServerPlugin.inst().getLogger().info("NPC is not targeting " + event.getPlayer().getName());
+//        }
     }
 
 

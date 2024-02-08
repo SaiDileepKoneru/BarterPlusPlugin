@@ -65,13 +65,27 @@ public class CommandTrade implements CommandExecutor {
                         for (NPC npc : CitizensAPI.getNPCRegistry()) {
                             MalmoServerPlugin.inst().getLogger().log(Level.INFO, "NPC: " + npc.getName());
 
-                            if (npc.getName().equalsIgnoreCase(args[1]))
-                                requested = (Player) npc.getEntity();
                             if (npc.getName().equalsIgnoreCase(args[6]))
+                                requested = (Player) npc.getEntity();
+                            if (npc.getName().equalsIgnoreCase(args[1]))
                                 requester = (Player) npc.getEntity();
                         }
                         if (requester == null || requested == null) {
                             MalmoServerPlugin.inst().getLogger().info("NPCs not found");
+                        }
+                        if (requested == null) {
+                            try {
+                                requested = Bukkit.getPlayer(args[6]);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        if (requester == null) {
+                            try {
+                                requester = Bukkit.getPlayer(args[1]);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                         if (requested != null && requester != null) {
                             try {

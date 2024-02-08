@@ -376,7 +376,13 @@ public class BarterGame {
             }
         }
         for (Participant participant : getParticipants()) {
-            participant.setProfession(getRandomProfession());
+            if (Objects.equals(participant.name, "John")) {
+                participant.setProfession(getFarmer());
+            } else if (Objects.equals(participant.name, "Jensen")) {
+                participant.setProfession(getBlacksmith());
+            } else {
+                participant.setProfession(getRandomProfession());
+            }
             MalmoServerPlugin.inst().getLogger().info("Player " + participant.getPlayer().getName() + " has been assigned the profession " + participant.getProfession().getName());
         }
     }
