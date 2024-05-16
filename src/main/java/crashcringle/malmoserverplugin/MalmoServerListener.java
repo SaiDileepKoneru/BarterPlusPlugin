@@ -122,7 +122,27 @@ public class MalmoServerListener implements Listener {
             }
         }
     }
+    @EventHandler
+    public void onChat(AsyncPlayerChatEvent event) {
+        Player orchestrator = Bukkit.getPlayer("kalyaniplays");
+        if (event.getMessage().toUpperCase().contains("[SYSTEM]")) {
+            if (event.getMessage().toUpperCase().contains("TARGET-BOBBY")) {
+                String message ="[SYSTEM][SCORE-BOBBY] Inventory: "+event.getMessage().split("barterSplit")[1]+" "+ BarterKings.barterGame.getParticipant("BOBBY").getScoreBreakdown();
+                // Get Bobby's barter game score
+                message = message.replace("\n", "").replace("\r", "");
+                orchestrator.chat(message);
+            } else if (event.getMessage().toUpperCase().contains("TARGET-JOHN")) {
+                String message = "[SYSTEM][SCORE-JOHN] Inventory: "+event.getMessage().split("barterSplit")[1]+" "+BarterKings.barterGame.getParticipant("JOHN").getScoreBreakdown();
+                // Get John's barter game score
+                message = message.replace("\n", "").replace("\r", "");
 
+                orchestrator.chat(message);
+            } else {
+                MalmoServerPlugin.inst().getLogger().info("Message sent: " + event.getMessage());
+                event.setCancelled(true);
+            }
+        }
+    }
     @EventHandler
     public void onEatEvent(PlayerItemConsumeEvent event) {
         event.setCancelled(true);

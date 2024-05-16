@@ -376,9 +376,9 @@ public class BarterGame {
             }
         }
         for (Participant participant : getParticipants()) {
-            if (Objects.equals(participant.name, "John")) {
+            if (Objects.equals(participant.name, "JOHN")) {
                 participant.setProfession(getFarmer());
-            } else if (Objects.equals(participant.name, "Jensen")) {
+            } else if (Objects.equals(participant.name, "BOBBY")) {
                 participant.setProfession(getBlacksmith());
             } else {
                 participant.setProfession(getRandomProfession());
@@ -388,6 +388,7 @@ public class BarterGame {
     }
 
     public void distributeItems() {
+
         distributeTier1Items();
         distributeTier2Items();
         distributeTier3Items();
@@ -409,10 +410,16 @@ public class BarterGame {
                     amtToGive = 1;
                 }
                 randomIndex =  (int) (Math.random() * getParticipants().size());
-                item.setAmount(amtToGive);
-                getParticipants().get(randomIndex).getPlayer().getInventory().addItem(item);
-                MalmoServerPlugin.inst().getLogger().info("Tier 1 | Giving " + getParticipants().get(randomIndex).getPlayer().getName() + " " + amtToGive + " " + item.getType());
-                amt = amt - amtToGive;
+                // Check if that participant is kalyaniplays
+                if (getParticipants().get(randomIndex).getPlayer().getName().equals("kalyaniplays") || getParticipants().get(randomIndex).getPlayer().getName().contains("kalyani") || getParticipants().get(randomIndex).getPlayer().getName().contains("Air")) {
+                    continue;
+                } else {
+                    item.setAmount(amtToGive);
+                    getParticipants().get(randomIndex).getPlayer().getInventory().addItem(item);
+                    MalmoServerPlugin.inst().getLogger().info("Tier 1 | Giving " + getParticipants().get(randomIndex).getPlayer().getName() + " " + amtToGive + " " + item.getType());
+                    amt = amt - amtToGive;
+                }
+
             }
         }
     }
@@ -432,11 +439,16 @@ public class BarterGame {
             ) {
                 amtToGive = 1;
             }
-                randomIndex =  (int) (Math.random() * getParticipants().size());
-                item.setAmount(amtToGive);
-                getParticipants().get(randomIndex).getPlayer().getInventory().addItem(item);
-                MalmoServerPlugin.inst().getLogger().info("Tier 2 | Giving " + getParticipants().get(randomIndex).getPlayer().getName() + " " + amtToGive + " " + item.getType());
-                amt = amt - amtToGive;
+                // Check if that participant is kalyaniplays
+                randomIndex = (int) (Math.random() * getParticipants().size());
+                if (getParticipants().get(randomIndex).getPlayer().getName().equals("kalyaniplays") || getParticipants().get(randomIndex).getPlayer().getName().contains("kalyani") || getParticipants().get(randomIndex).getPlayer().getName().contains("Air")) {
+                    continue;
+                } else {
+                    item.setAmount(amtToGive);
+                    getParticipants().get(randomIndex).getPlayer().getInventory().addItem(item);
+                    MalmoServerPlugin.inst().getLogger().info("Tier 2 | Giving " + getParticipants().get(randomIndex).getPlayer().getName() + " " + amtToGive + " " + item.getType());
+                    amt = amt - amtToGive;
+                }
             }
         }
     }
@@ -457,10 +469,16 @@ public class BarterGame {
                     amtToGive = 1;
                 }
                 randomIndex =  (int) (Math.random() * getParticipants().size());
-                item.setAmount(amtToGive);
-                getParticipants().get(randomIndex).getPlayer().getInventory().addItem(item);
-                MalmoServerPlugin.inst().getLogger().info("Tier 3 | Giving " + getParticipants().get(randomIndex).getPlayer().getName() + " " + amtToGive + " " + item.getType());
-                amt = amt - amtToGive;
+                // Check if that participant is kalyaniplays
+                if (getParticipants().get(randomIndex).getPlayer().getName().equals("kalyaniplays") || getParticipants().get(randomIndex).getPlayer().getName().contains("kalyani") || getParticipants().get(randomIndex).getPlayer().getName().contains("Air")) {
+                    continue;
+                } else {
+                    item.setAmount(amtToGive);
+                    getParticipants().get(randomIndex).getPlayer().getInventory().addItem(item);
+                    MalmoServerPlugin.inst().getLogger().info("Tier 3 | Giving " + getParticipants().get(randomIndex).getPlayer().getName() + " " + amtToGive + " " + item.getType());
+                    amt = amt - amtToGive;
+                }
+
             }
         }
     }
