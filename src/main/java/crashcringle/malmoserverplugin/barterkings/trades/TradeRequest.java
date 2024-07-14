@@ -1,5 +1,6 @@
 package crashcringle.malmoserverplugin.barterkings.trades;
 
+import crashcringle.malmoserverplugin.barterkings.players.NpcParticipant;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -53,6 +54,11 @@ public class TradeRequest {
         BarterKings.barterGame.getParticipant(requester).calculateTrueSilentScore();
         BarterKings.barterGame.getParticipant(requested).calculateTrueSilentScore();
         this.initialScores = new int[]{BarterKings.barterGame.getParticipant(requester).getScore(), BarterKings.barterGame.getParticipant(requester).getScore()};
+        // Check if the requested player is an npc
+        if (BarterKings.barterGame.getParticipant(requested) instanceof NpcParticipant) {
+            NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requested);
+            npcParticipant.sendTradeRequest(this);
+        }
     }
 
     public TradeRequest(Player requester, Player requested) {
@@ -178,9 +184,17 @@ public class TradeRequest {
         if (accepted) {
             requestStatus = RequestStatus.ACCEPTED;
             MalmoServerPlugin.inst().getLogger().log(Level.INFO, requested.getName() + " has accepted tradeRequest: " + requestID +" with " + requester.getName()+ " for: " + trade.getOfferedItemsString());
+            if (BarterKings.barterGame.getParticipant(requester) instanceof NpcParticipant) {
+                NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requester);
+                npcParticipant.acceptTradeRequest(this);
+            }
         } else {
             requestStatus = RequestStatus.DECLINED;
             MalmoServerPlugin.inst().getLogger().log(Level.INFO, requested.getName() + " has denied tradeRequest: " + requestID +" with " + requester.getName() );
+            if (BarterKings.barterGame.getParticipant(requester) instanceof NpcParticipant) {
+                NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requester);
+                npcParticipant.denyTradeRequest(this);
+            }
         }
         setCompleted(true);
     }
@@ -309,6 +323,10 @@ public class TradeRequest {
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
         requestStatus = RequestStatus.CANCELLED;
+        if (BarterKings.barterGame.getParticipant(requested) instanceof NpcParticipant) {
+            NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requested);
+            npcParticipant.cancelTradeRequest(this);
+        }
         this.setCompleted(true);
     }
 
@@ -337,7 +355,18 @@ public class TradeRequest {
         }
 
         return str;
+    }
 
+    public String toPersonalString() {
+        String str = "[REQUEST] " +requester.getName() + " requested a trade with you at " + beginTimestamp.toString();
+        if (hasMenu()) {
+            // What the trade was for
+            str += " Offering " + trade.getOfferedItemsString() + " for " + trade.getRequestedItemsString();
+        } else {
+            str += " Offering " + trade.getOfferedAmount() + " " + trade.getOfferedItem().getType().toString() + " for " + trade.getRequestedAmount() + " " + trade.getRequestedItem().getType().toString();
+        }
+
+        return str;
 
     }
     public TradeMenu getTradeMenu() {

@@ -1,11 +1,9 @@
 package crashcringle.malmoserverplugin.barterkings.players;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
-import crashcringle.malmoserverplugin.barterkings.BarterKings;
 import crashcringle.malmoserverplugin.barterkings.npc.BarterTrait;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeRequest;
-import crashcringle.malmoserverplugin.data.LegacyData;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Bukkit;
@@ -22,11 +20,9 @@ import org.bukkit.util.io.BukkitObjectInputStream;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.zip.GZIPInputStream;
@@ -372,17 +368,21 @@ public class BarterGame {
     public void setUpParticipants() {
         for (NPC npc : CitizensAPI.getNPCRegistry()) {
             if (npc.hasTrait(BarterTrait.class)) {
-                participants.add(new Participant((Player) npc.getEntity()));
+                participants.add(new NpcParticipant(npc));
+                // Clear their inventory
+                ((Player) npc.getEntity()).getInventory().clear();
             }
         }
         for (Participant participant : getParticipants()) {
-            if (Objects.equals(participant.name, "JOHN")) {
-                participant.setProfession(getFarmer());
-            } else if (Objects.equals(participant.name, "BOBBY")) {
-                participant.setProfession(getBlacksmith());
-            } else {
-                participant.setProfession(getRandomProfession());
-            }
+//            if (Objects.equals(participant.name, "JOHN")) {
+//                participant.setProfession(getFarmer());
+//            } else if (Objects.equals(participant.name, "BOBBY")) {
+//                participant.setProfession(getBlacksmith());
+//            } else {
+//                participant.setProfession(getRandomProfession());
+//            }
+            participant.setProfession(getRandomProfession());
+
             MalmoServerPlugin.inst().getLogger().info("Player " + participant.getPlayer().getName() + " has been assigned the profession " + participant.getProfession().getName());
         }
     }

@@ -1,6 +1,7 @@
 package crashcringle.malmoserverplugin.barterkings;
 
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
+import crashcringle.malmoserverplugin.barterkings.ai.GPTService;
 import crashcringle.malmoserverplugin.barterkings.players.BarterGame;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
 import crashcringle.malmoserverplugin.barterkings.villagers.MalmoTrader;
@@ -13,6 +14,7 @@ public class BarterKings {
 
     public static Map<Integer, MalmoTrader> traders = new HashMap<>();
     public static BarterGame barterGame;
+    public static GPTService gptService;
     public static TradeController controller;
     public static NPC npc;
 
@@ -23,6 +25,7 @@ public class BarterKings {
     public static BarterGame startNewGame() {
         barterGame = new BarterGame();
         controller = new TradeController();
+        gptService = new GPTService(barterGame, controller);
         return barterGame;
     }
 

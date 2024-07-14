@@ -1,7 +1,10 @@
 package crashcringle.malmoserverplugin;
 
+import com.cjcrafter.openai.chat.ChatMessage;
 import crashcringle.malmoserverplugin.api.MalmoTraderInteractEvent;
 import crashcringle.malmoserverplugin.barterkings.BarterKings;
+import crashcringle.malmoserverplugin.barterkings.ai.NPCMessageEvent;
+import crashcringle.malmoserverplugin.barterkings.players.NpcParticipant;
 import crashcringle.malmoserverplugin.barterkings.players.Participant;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
 import crashcringle.malmoserverplugin.barterkings.villagers.MalmoTrader;
@@ -32,6 +35,8 @@ import org.ipvp.canvas.type.ChestMenu;
 
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 public class MalmoServerListener implements Listener {
 
@@ -54,23 +59,12 @@ public class MalmoServerListener implements Listener {
     @EventHandler
     
     public void broadcastTradeEvent (AsyncPlayerChatEvent event) {
+
         if (BarterKings.barterGame.isParticipant(event.getPlayer())) {
             Participant participant = BarterKings.barterGame.getParticipant(event.getPlayer());
             event.setMessage(participant.getColor() + event.getMessage());
         }
-//        if (event.getMessage().contains("want to trade") || event.getMessage().contains("trade with me?") || event.getMessage().contains("trade?")) {
-//            event.setCancelled(true);
-//            TextComponent message = new TextComponent(event.getPlayer().getDisplayName() + " wants to trade!");
-//            message.setColor(ChatColor.AQUA);
-//            message.setItalic(true);
-//            message.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ChatColor.AQUA + event.getPlayer().getName() + ": " + ChatColor.DARK_RED + event.getMessage()).create()));
-//            message.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org"));
-//            for (Player player : Bukkit.getOnlinePlayers()) {
-//                player.spigot().sendMessage(message);
-//            }
-//
-//
-//        }
+
     }
 
     @EventHandler
@@ -124,24 +118,47 @@ public class MalmoServerListener implements Listener {
     }
     @EventHandler
     public void onChat(AsyncPlayerChatEvent event) {
-        Player orchestrator = Bukkit.getPlayer("kalyaniplays");
-        if (event.getMessage().toUpperCase().contains("[SYSTEM]")) {
-            if (event.getMessage().toUpperCase().contains("TARGET-BOBBY")) {
-                String message ="[SYSTEM][SCORE-BOBBY] Inventory: "+event.getMessage().split("barterSplit")[1]+" "+ BarterKings.barterGame.getParticipant("BOBBY").getScoreBreakdown();
-                // Get Bobby's barter game score
-                message = message.replace("\n", "").replace("\r", "");
-                orchestrator.chat(message);
-            } else if (event.getMessage().toUpperCase().contains("TARGET-JOHN")) {
-                String message = "[SYSTEM][SCORE-JOHN] Inventory: "+event.getMessage().split("barterSplit")[1]+" "+BarterKings.barterGame.getParticipant("JOHN").getScoreBreakdown();
-                // Get John's barter game score
-                message = message.replace("\n", "").replace("\r", "");
+        //  Add the chat to the npc's chat messages
+        // Get all participants that are instances of an npcParticipant
+        // Format the chat message
+        String time = String.valueOf(System.currentTimeMillis());
+        String message = "["+time+"] "+event.getPlayer().getName() + ": " + event.getMessage();
+        for (Participant participant : BarterKings.barterGame.getParticipants()) {
+            if (participant instanceof NpcParticipant) {
+                // Check if the npc is currently generating a message
+                NpcParticipant npcParticipant = (NpcParticipant) participant;
+                if (npcParticipant.isGenerating()) {
+                    // Add the chat message to the npc's chat messages
+                    MalmoServerPlugin.inst().getLogger().info("Adding message to npc's chat messages");
+                    npcParticipant.chunkMessage(message);
 
-                orchestrator.chat(message);
-            } else {
-                MalmoServerPlugin.inst().getLogger().info("Message sent: " + event.getMessage());
-                event.setCancelled(true);
+                } else {
+                    MalmoServerPlugin.inst().getLogger().info("Processing message");
+                    npcParticipant.processMessage(message);
+                }
             }
         }
+    }
+
+    @EventHandler
+    public void onNPCMessage(NPCMessageEvent event) {
+//        NpcParticipant npcParticipant = event.getNpcParticipant();
+//        String message = event.getMessage();
+//        String chat = event.getChat();
+//        Bukkit.broadcastMessage(chat);
+//        MalmoServerPlugin.inst().getLogger().info("NPC Message Event: "+chat);
+//        for (Participant participant : BarterKings.barterGame.getParticipants()) {
+//            if (participant instanceof NpcParticipant) {
+//                NpcParticipant npc = (NpcParticipant) participant;
+//                if (npc != npcParticipant) {
+//                    if (npc.isGenerating()) {
+//                        npc.chunkMessage(chat);
+//                    } else {
+//                        npc.processMessage(chat);
+//                    }
+//                }
+//            }
+//        }
     }
     @EventHandler
     public void onEatEvent(PlayerItemConsumeEvent event) {
