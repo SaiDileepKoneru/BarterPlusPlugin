@@ -1,5 +1,7 @@
 package crashcringle.malmoserverplugin.barterkings.players;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import crashcringle.malmoserverplugin.MalmoServerPlugin;
 import crashcringle.malmoserverplugin.barterkings.npc.BarterTrait;
 import crashcringle.malmoserverplugin.barterkings.trades.TradeController;
@@ -129,7 +131,7 @@ public class BarterGame {
     public void teleportPlayers() {
         for (Participant participant : participants) {
             participant.getPlayer().setScoreboard(createScoreboard(participant.getProfession()));
-            participant.getPlayer().teleport(new Location(Bukkit.getWorld("world"), -704 + Math.random()+5, 73, 71 + Math.random()+5));
+            participant.getPlayer().teleport(new Location(Bukkit.getWorld("world"), -704 + Math.random()*5, 73, 71 + Math.random()*5));
         }
     }
 
@@ -227,13 +229,13 @@ public class BarterGame {
         }
         barterGame.put("trades", trades);
         FileWriter fileW = null;
+        JsonObject json = null;
         try {
             try {
-                BukkitObjectInputStream in = new BukkitObjectInputStream(new GZIPInputStream(new FileInputStream(MalmoServerPlugin.inst().getDataFolder().getPath() +"/barterGame.json")));
-                String content2 = (String) in.readObject();
-                in.close();
-                MalmoServerPlugin.inst().getLogger().log(Level.INFO, content2);
-            } catch (ClassNotFoundException | IOException e) {
+                var gson = new Gson();
+                var file = new File(MalmoServerPlugin.inst().getDataFolder().getPath() +"/barterGame.json");
+                json = gson.fromJson(new FileReader(file), JsonObject.class);
+            } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }

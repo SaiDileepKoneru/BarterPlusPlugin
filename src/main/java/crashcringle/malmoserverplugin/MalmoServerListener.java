@@ -118,24 +118,34 @@ public class MalmoServerListener implements Listener {
     }
     @EventHandler
     public void onChat(AsyncPlayerChatEvent event) {
-        //  Add the chat to the npc's chat messages
-        // Get all participants that are instances of an npcParticipant
-        // Format the chat message
+//            if (event.getPlayer().hasMetadata("NPC")) {
+//            if (BarterKings.barterGame.isParticipant(event.getPlayer())) {
+//                Participant participant = BarterKings.barterGame.getParticipant(event.getPlayer());
+//                if (participant instanceof NpcParticipant) {
+//                    NpcParticipant npc = (NpcParticipant) participant;
+//                    org.bukkit.ChatColor color = switch (npc.getProfession().getName()) {
+//                        case "Farmer" -> org.bukkit.ChatColor.GREEN;
+//                        case "Fisherman" -> org.bukkit.ChatColor.AQUA;
+//                        case "Mason" -> org.bukkit.ChatColor.GRAY;
+//                        case "Shepherd" -> org.bukkit.ChatColor.WHITE;
+//                        case "Blacksmith" -> org.bukkit.ChatColor.DARK_GRAY;
+//                        case "Librarian" -> org.bukkit.ChatColor.DARK_BLUE;
+//                        case "Butcher" -> org.bukkit.ChatColor.RED;
+//                        case "Lumberjack" -> org.bukkit.ChatColor.DARK_GREEN;
+//                        case "Leatherworker" -> org.bukkit.ChatColor.GOLD;
+//                        default -> org.bukkit.ChatColor.WHITE;
+//                    };
+//                }
+//            }
+//        }
+
         String time = String.valueOf(System.currentTimeMillis());
         String message = "["+time+"] "+event.getPlayer().getName() + ": " + event.getMessage();
         for (Participant participant : BarterKings.barterGame.getParticipants()) {
             if (participant instanceof NpcParticipant) {
                 // Check if the npc is currently generating a message
                 NpcParticipant npcParticipant = (NpcParticipant) participant;
-                if (npcParticipant.isGenerating()) {
-                    // Add the chat message to the npc's chat messages
-                    MalmoServerPlugin.inst().getLogger().info("Adding message to npc's chat messages");
-                    npcParticipant.chunkMessage(message);
-
-                } else {
-                    MalmoServerPlugin.inst().getLogger().info("Processing message");
-                    npcParticipant.processMessage(message);
-                }
+                npcParticipant.queueMessage(message);
             }
         }
     }

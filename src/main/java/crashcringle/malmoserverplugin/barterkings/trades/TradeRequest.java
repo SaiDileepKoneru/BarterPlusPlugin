@@ -186,14 +186,22 @@ public class TradeRequest {
             MalmoServerPlugin.inst().getLogger().log(Level.INFO, requested.getName() + " has accepted tradeRequest: " + requestID +" with " + requester.getName()+ " for: " + trade.getOfferedItemsString());
             if (BarterKings.barterGame.getParticipant(requester) instanceof NpcParticipant) {
                 NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requester);
-                npcParticipant.acceptTradeRequest(this);
+                npcParticipant.acceptTradeRequest(this, false);
+            }
+            if (BarterKings.barterGame.getParticipant(requested) instanceof NpcParticipant) {
+                NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requested);
+                npcParticipant.acceptTradeRequest(this, true);
             }
         } else {
             requestStatus = RequestStatus.DECLINED;
             MalmoServerPlugin.inst().getLogger().log(Level.INFO, requested.getName() + " has denied tradeRequest: " + requestID +" with " + requester.getName() );
             if (BarterKings.barterGame.getParticipant(requester) instanceof NpcParticipant) {
                 NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requester);
-                npcParticipant.denyTradeRequest(this);
+                npcParticipant.denyTradeRequest(this, false);
+            }
+            if (BarterKings.barterGame.getParticipant(requested) instanceof NpcParticipant) {
+                NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requested);
+                npcParticipant.denyTradeRequest(this, true);
             }
         }
         setCompleted(true);
@@ -246,6 +254,21 @@ public class TradeRequest {
         requested.sendMessage(message);
     }
 
+    public void sendAMessage(String message) {
+        if (BarterKings.barterGame.getParticipant(requester) instanceof NpcParticipant) {
+            NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requester);
+            npcParticipant.queueMessage(message);
+        } else {
+            requester.sendMessage(message);
+        }
+        if (BarterKings.barterGame.getParticipant(requested) instanceof NpcParticipant) {
+            NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requested);
+            npcParticipant.queueMessage(message);
+        } else {
+            requested.sendMessage(message);
+        }
+    }
+
     public void accept() {
         if (this.isCompleted()) {
             sendMessage(ChatColor.GOLD + "The trade has already been completed");
@@ -286,19 +309,18 @@ public class TradeRequest {
                             requester.getInventory().addItem(new ItemStack(trade.getRequestedItem().getType(), trade.getRequestedAmount()));
                             sendMessage(ChatColor.GOLD + "Trade completed!");
                         } else {
-                            sendMessage(ChatColor.DARK_RED + "The requester does not have the requested item!");
+                            sendAMessage(ChatColor.DARK_RED + "The requester does not have the requested item! Trade failed!");
                         }
                     } else {
-                        sendMessage(ChatColor.DARK_RED + "The requested player does not have the offered item!");
+                        sendAMessage(ChatColor.DARK_RED + "The requested player does not have the offered item! Trade failed!");
                     }
                 } else {
-                    sendMessage(ChatColor.DARK_RED + "The offered item is not valid!");
+                    sendAMessage(ChatColor.DARK_RED + "The offered item is not valid! Trade failed!");
                 }
             } else {
-                sendMessage(ChatColor.DARK_RED + "The requested item is not valid!");
+                sendAMessage(ChatColor.DARK_RED + "The requested item is not valid! Trade failed!");
             }
             if (!isCompleted()) {
-                sendMessage(ChatColor.DARK_RED + "Trade failed!");
                 MalmoServerPlugin.inst().getLogger().log(Level.INFO, "A trade has failed between requester: " + requester.getName() + " and requestee: " + requested.getName());
             }
         }
@@ -323,9 +345,13 @@ public class TradeRequest {
     public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
         requestStatus = RequestStatus.CANCELLED;
+        if (BarterKings.barterGame.getParticipant(requester) instanceof NpcParticipant) {
+            NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requester);
+            npcParticipant.cancelTradeRequest(this, false);
+        }
         if (BarterKings.barterGame.getParticipant(requested) instanceof NpcParticipant) {
             NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requested);
-            npcParticipant.cancelTradeRequest(this);
+            npcParticipant.cancelTradeRequest(this, true);
         }
         this.setCompleted(true);
     }
@@ -365,7 +391,6 @@ public class TradeRequest {
         } else {
             str += " Offering " + trade.getOfferedAmount() + " " + trade.getOfferedItem().getType().toString() + " for " + trade.getRequestedAmount() + " " + trade.getRequestedItem().getType().toString();
         }
-
         return str;
 
     }
