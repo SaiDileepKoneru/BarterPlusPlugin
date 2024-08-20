@@ -1,0 +1,10 @@
+# Obtain a key here: https://platform.openai.com
+openai-key: ""
+# If you have GPT-4 access, it is highly recommended to use it here.
+# Switch this to "gpt-4" if you do.
+openai-model: "gpt-4o"
+openai-topP: 0.8
+openai-temperature: 0.7
+openai-seed: 10
+# Log conversation messages to server console, useful for catching abuse
+log-conversations: true

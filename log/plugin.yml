@@ -1,6 +1,6 @@
-name: MalmoServerPlugin
+name: BarterPlus
 version: '${project.version}'
-main: crashcringle.malmoserverplugin.MalmoServerPlugin
+main: com.crashcringle.barterplus.BarterPlus
 authors: [ Crash_Cringle ]
 description: Malmo Server Plugin
 api-version: 1.19
@@ -10,4 +10,4 @@ commands:
   barter:
     description: Trade with a player
     usage: /barter trade <player>
-    permission: malmoserverplugin.trade
+    permission: barterplus.trade
