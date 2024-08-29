@@ -30,6 +30,8 @@ public class TradeRequest {
     private Trade trade;
     private boolean completed = false;
 
+    private boolean failed = false;
+
     private TradeMenu tradeMenu;
     
     private boolean cancelled = false;
@@ -40,6 +42,9 @@ public class TradeRequest {
     int[] initialScores = new int[2];
     int[] finalScores = new int[2];
     String requestID = "";
+
+    String failedReason = "";
+
 
     public TradeRequest(Player requester, Player requested, Trade trade) {
         this.requester = requester;
@@ -58,6 +63,23 @@ public class TradeRequest {
             NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requested);
             npcParticipant.sendTradeRequest(this);
         }
+
+    }
+
+    public TradeRequest(Player requester, Player requested, Trade trade, boolean isFailed, String reason) {
+        this.requester = requester;
+        this.requested = requested;
+        this.trade = trade;
+        this.beginTimestamp = new Timestamp(System.currentTimeMillis());
+        this.requestID = requester.getName() + requested.getName() + beginTimestamp.getTime();
+        BarterPlus.inst().getLogger().log(Level.INFO, "New Trade via Cmd: " + requestID + "| " + requester.getName() + "---> " + requested.getName() + ": " + trade.getOfferString());
+        this.requestID = requester.getName() + requested.getName() + beginTimestamp.toString();
+        this.finishedTimestamp = new Timestamp(0);
+        BarterKings.barterGame.getParticipant(requester).calculateTrueSilentScore();
+        BarterKings.barterGame.getParticipant(requested).calculateTrueSilentScore();
+        this.initialScores = new int[]{BarterKings.barterGame.getParticipant(requester).getScore(), BarterKings.barterGame.getParticipant(requester).getScore()};
+        this.setFailed(isFailed, reason);
+
     }
 
     public TradeRequest(Player requester, Player requested) {
@@ -81,8 +103,8 @@ public class TradeRequest {
         tradeReqJson.put("hasMenu", hasMenu());
         tradeReqJson.put("beginTimestamp", getBeginTime().toString());
         tradeReqJson.put("endTimestamp", getFinishTime().toString());
-        tradeReqJson.put("beginScores", getBeginTime().toString());
-        tradeReqJson.put("endScores", getBeginTime().toString());
+//        tradeReqJson.put("beginScores", getBeginTime().toString());
+//        tradeReqJson.put("endScores", getBeginTime().toString());
         JSONObject beginScores = new JSONObject();
         beginScores.put("requester", getInitialScores()[0]);
         beginScores.put("requested", getInitialScores()[1]);
@@ -93,6 +115,7 @@ public class TradeRequest {
         tradeReqJson.put("endScores", endScores);
 
         tradeReqJson.put("status", getRequestStatus().toString());
+        tradeReqJson.put("reason", getFailedReason());
         JSONArray offer = new JSONArray();
         JSONArray request = new JSONArray();
         JSONArray requestedInventory = new JSONArray();
@@ -215,11 +238,11 @@ public class TradeRequest {
         if (completed) {
             if (accepted) {
                 BarterPlus.inst().getLogger().log(Level.INFO,  "Request: " + requestID + " completed");
-                setRequestedInventory(requested.getInventory().getContents());
-                setRequesterInventory(requester.getInventory().getContents());
             } else {
                 BarterPlus.inst().getLogger().log(Level.INFO, "Request: " + requestID + " failed");
             }
+            setRequestedInventory(requested.getInventory().getContents());
+            setRequesterInventory(requester.getInventory().getContents());
             this.finishedTimestamp = new Timestamp(System.currentTimeMillis());
             BarterKings.barterGame.getParticipant(requester).calculateTrueSilentScore();
             BarterKings.barterGame.getParticipant(requested).calculateTrueSilentScore();
@@ -260,12 +283,12 @@ public class TradeRequest {
         } else {
             requester.sendMessage(message);
         }
-        if (BarterKings.barterGame.getParticipant(requested) instanceof NpcParticipant) {
-            NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requested);
-            npcParticipant.queueMessage(message);
-        } else {
-            requested.sendMessage(message);
-        }
+//        if (BarterKings.barterGame.getParticipant(requested) instanceof NpcParticipant) {
+//            NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requested);
+//            npcParticipant.queueMessage(message);
+//        } else {
+//            requested.sendMessage(message);
+//        }
     }
 
     public void accept() {
@@ -308,18 +331,22 @@ public class TradeRequest {
                             requester.getInventory().addItem(new ItemStack(trade.getRequestedItem().getType(), trade.getRequestedAmount()));
                             sendMessage(ChatColor.GOLD + "Trade completed!");
                         } else {
-                            sendAMessage(ChatColor.DARK_RED + "The requester does not have the requested item! Trade failed!");
+                            sendMessage(ChatColor.DARK_RED + "The requester does not have the requested item! Trade failed!");
+                            setFailed(true, "FAIL1 - Requester does not have the offered item");
                         }
                     } else {
-                        sendAMessage(ChatColor.DARK_RED + "The requested player does not have the offered item! Trade failed!");
+                        sendMessage(ChatColor.DARK_RED + "The requested player does not have the offered item! Trade failed!");
+                        setFailed(true, "FAIL2 - Requested player does not have the requested item");
                     }
                 } else {
-                    sendAMessage(ChatColor.DARK_RED + "The offered item is not valid! Trade failed!");
+                    sendMessage(ChatColor.DARK_RED + "The offered item is not valid! Trade failed!");
+                    setFailed(true, "FAIL3 - Offered item is not valid");
                 }
             } else {
-                sendAMessage(ChatColor.DARK_RED + "The requested item is not valid! Trade failed!");
+                sendMessage(ChatColor.DARK_RED + "The requested item is not valid! Trade failed!");
+                setFailed(true, "FAIL4 - Requested item is not valid");
             }
-            if (!isCompleted()) {
+            if (isFailed()) {
                 BarterPlus.inst().getLogger().log(Level.INFO, "A trade has failed between requester: " + requester.getName() + " and requestee: " + requested.getName());
             }
         }
@@ -353,6 +380,22 @@ public class TradeRequest {
             npcParticipant.cancelTradeRequest(this, true);
         }
         this.setCompleted(true);
+    }
+
+    public void setFailed(boolean failed, String reason) {
+        this.failed = failed;
+        requestStatus = RequestStatus.FAILED;
+        this.setCompleted(true);
+        BarterPlus.inst().getLogger().log(Level.INFO, "Trade failed: " + reason);
+        this.failedReason = reason;
+    }
+
+    public boolean isFailed() {
+        return failed;
+    }
+
+    public String getFailedReason() {
+        return failedReason;
     }
 
     public RequestStatus getRequestStatus() {
@@ -391,8 +434,19 @@ public class TradeRequest {
             str += " Offering " + trade.getOfferedAmount() + " " + trade.getOfferedItem().getType().toString() + " for " + trade.getRequestedAmount() + " " + trade.getRequestedItem().getType().toString();
         }
         return str;
-
     }
+
+    public String toNPCString() {
+        String str = "[REQUEST] " +requester.getName() + " requested a trade with you at " + beginTimestamp.toString();
+        if (hasMenu()) {
+            // What the trade was for
+            str += " Offering " + trade.getOfferedItemsString() + " for " + trade.getRequestedItemsString();
+        } else {
+            str += " Offering " + trade.getOfferedAmount() + " " + trade.getOfferedItem().getType().toString() + " for " + trade.getRequestedAmount() + " " + trade.getRequestedItem().getType().toString() + ". Please accept or decline.";
+        }
+        return str;
+    }
+
     public TradeMenu getTradeMenu() {
         return tradeMenu;
     }

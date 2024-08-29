@@ -60,9 +60,10 @@ public class GPTService {
 
 
     public static ChatMessage handleToolCall(NpcParticipant npc, ToolCall call, List<Tool> validTools) {
-        // The try-catch here is *crucial*. ChatGPT *isn't very good*
-        // at tool calls (And you probably aren't very good at prompt
-        // engineering yet!). OpenAI will often "Hallucinate" arguments.
+
+        if (!BarterKings.barterGame.inProgress()) {
+            return new ChatMessage(ChatUser.TOOL, "The Game is Over, no more tool calls.", null, call.getId());
+        }
         try {
             if (call.getType() != Tool.Type.FUNCTION)
                 throw new HallucinationException("Unknown tool call type: " + call.getType());
@@ -73,7 +74,8 @@ public class GPTService {
             }
             Map<String, JsonNode> arguments = function.tryParseArguments(validTools); // You can pass null here for less strict parsing
             Player npcPlayer = npc.getPlayer();
-
+            BarterPlus.inst().getLogger().info("Tool Call: " + function.getName());
+            BarterPlus.inst().getLogger().info("Arguments: " + arguments);
             switch (function.getName()) {
                 case "do_nothing":
                     BarterPlus.inst().getLogger().info("Doing nothing for " + npcPlayer.getName());
@@ -128,8 +130,15 @@ public class GPTService {
                     Trade trade = new Trade(offeredStack, requestedStack);
                     // Send the trade request
                     BarterPlus.inst().getLogger().info("Sending trade request to " + player);
-                    TradeController.sendTradeRequest(npcPlayer.getName(), player, trade);
-                    return new ChatMessage(ChatUser.TOOL, "Trade request sent", null, call.getId());
+                    TradeRequest daRequest = TradeController.sendTradeRequest(npcPlayer.getName(), player, trade);
+                    Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), "[*][trade -> "+ player + "] " + offeredQty + " " + offeredItem + " for " + requestedQty + " " + requestedItem, new HashSet<>(Bukkit.getOnlinePlayers())));
+                    if (daRequest == null)
+                        throw new HallucinationException("Request failed to send");
+                    else {
+                        if (daRequest.isFailed())
+                            return new ChatMessage(ChatUser.TOOL, "Trade request failed: " + daRequest.getFailedReason(), null, call.getId());
+                        return new ChatMessage(ChatUser.TOOL, "Trade request sent to " + player, null, call.getId());
+                    }
                 case "accept_trade":
                     // If there are no arguments, accept the most recent trade
                     if (arguments.isEmpty()) {
@@ -144,7 +153,14 @@ public class GPTService {
                     }
                     BarterPlus.inst().getLogger().info("Accepting trade from " + acceptPlayer);
                     // Accept the trade
-                    TradeController.acceptTrade(npcPlayer.getName(), acceptPlayer);
+                    TradeRequest requesti = TradeController.acceptTrade(npcPlayer.getName(), acceptPlayer);
+                    if (requesti == null) {
+                        throw new HallucinationException("No trade request found with " + acceptPlayer);
+                    }
+                    if (requesti.isFailed()) {
+                        requesti.sendAMessage("Trade failed: " + requesti.getFailedReason());
+                        return new ChatMessage(ChatUser.TOOL, "Trade failed: " + requesti.getFailedReason(), null, call.getId());
+                    }
                     return new ChatMessage(ChatUser.TOOL, "Trade accepted with " + acceptPlayer, null, call.getId());
                 case "decline_trade":
                     // If there are no arguments, decline the most recent trade
@@ -163,7 +179,9 @@ public class GPTService {
                     }
                     BarterPlus.inst().getLogger().info("Declining trade from " + declinePlayer);
                     // Decline the trade
-                    TradeController.denyTrade(npcPlayer.getName(), declinePlayer);
+                    TradeRequest requesto = TradeController.denyTrade(npcPlayer.getName(), declinePlayer);
+                    if (requesto == null)
+                        throw new HallucinationException("No trade request found with " + declinePlayer);
                     return new ChatMessage(ChatUser.TOOL, "Trade declined from " + declinePlayer, null, call.getId());
                 case "cancel_trade":
                     // If there are no arguments, cancel the most recent trade
@@ -182,7 +200,9 @@ public class GPTService {
                     }
                     BarterPlus.inst().getLogger().info("Cancelling trade with " + cancelPlayer);
                     // Cancel the trade
-                    TradeController.cancelTrade(npcPlayer.getName(), cancelPlayer);
+                    TradeRequest requesta = TradeController.cancelTrade(npcPlayer.getName(), cancelPlayer);
+                    if (requesta == null)
+                        throw new HallucinationException("No outgoing trade request found to " + cancelPlayer);
                     return new ChatMessage(ChatUser.TOOL, "Trade cancelled with " + cancelPlayer, null, call.getId());
                 case "check_trades":
                     // List all the trades
@@ -206,8 +226,10 @@ public class GPTService {
                     for (TradeRequest tradeRequest : trades) {
                         if (completedTrades) {
                             if (tradeRequest.isCompleted()) {
-
-                                tradeList += tradeRequest.toString() + ", ";
+                                if (tradeRequest.isFailed())
+                                    tradeList += tradeRequest.toString() + " (Failed), ";
+                                else
+                                    tradeList += tradeRequest.toString() + ", ";
                             }
                         } else {
                             if (!tradeRequest.isCompleted())
@@ -270,6 +292,7 @@ public class GPTService {
                     } else {
                         Bukkit.getPlayer(messagePlayer).sendMessage(npcPlayer.getName() + " -> " + message);
                     }
+                    Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), "[private_message -> "+ messagePlayer + "] " + message, new HashSet<>(Bukkit.getOnlinePlayers())));
                     return new ChatMessage(ChatUser.TOOL, "private_message sent to " + messagePlayer , null, call.getId());
             }
             throw new HallucinationException("Unknown tool call function:" + function.getName());
@@ -350,15 +373,15 @@ public class GPTService {
             // If we get an exception try again 4 times every 10 seconds
             // Use Bukkit scheduler to run after a 10 second delay
             ChatResponse response2 = openai.createChatCompletion(request);
-            BarterPlus.inst().getLogger().info("Response: " + response2.toString());
+            //BarterPlus.inst().getLogger().info("Response: " + response2.toString());
             messages.add(response2.get(0).getMessage());
             try {
-                File file = new File(BarterPlus.inst().getDataFolder().getPath() +"/request" + request.getUser() + ".json");
+                File file = new File(BarterPlus.inst().getDataFolder().getPath() +"/requests/request-" + request.getUser() + ".json");
                 // Write the contents of the request to the file
                 FileWriter writer = new FileWriter(file);
                 writer.write("********************\n"+request.toString() + "\n\n");
                 for (ChatMessage message2 : messages) {
-                    writer.write(message.getContent() + "\n");
+                    writer.write(message2.getContent() + "\n");
                 }
                 writer.write(response2.get(0).getMessage().toString());
                 writer.close();
@@ -381,7 +404,7 @@ public class GPTService {
                     messages.add(response);
                 }
             } else {
-                if (messages.get(messages.size() - 1).getContent() == null) {
+                if (messages.get(messages.size() - 1).getContent().contains("do_nothing") || messages.get(messages.size() - 1).getContent() == null || messages.get(messages.size() - 1).getContent().isEmpty() || messages.get(messages.size() - 1).getContent().isBlank()) {
                     sayNothing = true;
                 }
                 if (!sayNothing) {

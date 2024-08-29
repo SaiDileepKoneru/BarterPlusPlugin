@@ -126,7 +126,6 @@ public class Participant  {
                 int addedScore = 0;
                 ItemStack item2 = new ItemStack(item.getType());
                 item2.setAmount(1);
-                BarterPlus.inst().getLogger().log(Level.INFO, "Item: " + item.getType() + " x" + item.getAmount() + " = " + addedScore);
                 if (this.getProfession().getTier1Items().contains(item2)) {
                     addedScore += item.getAmount();
                 } else if (this.getProfession().getTier2Items().contains(item2)) {
@@ -134,7 +133,7 @@ public class Participant  {
                 } else if (this.getProfession().getTier3Items().contains(item2)) {
                     addedScore += 10 * item.getAmount();
                 }
-                 if (addedScore > 0) {
+                if (addedScore > 0) {
 
                      String message = String.format("%s%-25s x%-4d = %4d", ChatColor.GOLD, fm(item.getType()), item.getAmount(), addedScore);
                      getPlayer().sendMessage(message);

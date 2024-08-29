@@ -32,8 +32,11 @@ public class TradeController {
         PENDING,
         ACCEPTED,
         DECLINED,
-        CANCELLED
+        CANCELLED,
+        FAILED
     };
+
+
     public TradeController() {
         outgoingRequests = new HashMap<>();
         incomingRequests = new HashMap<>();
@@ -84,11 +87,13 @@ public class TradeController {
             message = new TextComponent(ChatColor.RED + "" + ChatColor.UNDERLINE + "Click Here " + ChatColor.RED +  "or type /barter cancel " + ChatColor.BOLD + requested.getName() + ChatColor.RED + " to cancel the trade");
             message.setHoverEvent(cancelHover);
             message.setClickEvent(cancelClick);
+
             requester.spigot().sendMessage(message);
             return request;
         } else {
+            TradeRequest request = new TradeRequest(requester, requested, trade, true, "FAIL5 - You already have an active outgoing trade with this player");
             requester.sendMessage(ChatColor.DARK_RED + "You have already requested an active trade with " + requested.getName());
-            return null;
+            return request;
         }
     }
 
@@ -152,14 +157,16 @@ public class TradeController {
         }
     }
 
-    public static void acceptTrade(String requested, String requester) {
+    public static TradeRequest acceptTrade(String requested, String requester) {
         if (incomingRequests.containsKey(requested.toUpperCase())) {
             for (TradeRequest request : incomingRequests.get(requested.toUpperCase())) {
                 if (request.getRequester().getName().equalsIgnoreCase(requester.toUpperCase()) && !request.isCompleted()) {
                     acceptTradeRequest(request);
+                    return request;
                 }
             }
         }
+        return null;
     }
 
     public static void declineTradeRequest(TradeRequest tradeRequest) {
@@ -219,15 +226,16 @@ public class TradeController {
         }
     }
 
-    public static void denyTrade(String requested, String requester) {
+    public static TradeRequest denyTrade(String requested, String requester) {
         if (incomingRequests.containsKey(requested)) {
             for (TradeRequest request : incomingRequests.get(requested)) {
                 if (request.getRequester().equals(requester) && !request.isCompleted()) {
                     declineTradeRequest(request);
-                    return;
+                    return request;
                 }
             }
         }
+        return null;
     }
     public static void completeTradeRequest(TradeRequest tradeRequest) {
             tradeRequest.setCompleted(true);
@@ -281,15 +289,16 @@ public class TradeController {
         }
     }
 
-    public static void cancelTrade(String requester, String requested) {
+    public static TradeRequest cancelTrade(String requester, String requested) {
         if (outgoingRequests.containsKey(requester)) {
             for (TradeRequest request : outgoingRequests.get(requester)) {
                 if (request.getRequested().equals(requested) && !request.isCompleted()) {
                     cancelTradeRequest(request);
-                    return;
+                    return request;
                 }
             }
         }
+        return null;
     }
     /**
      * Adds the trade request to the list of trade requests
@@ -346,6 +355,17 @@ public class TradeController {
         if (outgoingRequests.containsKey(requester.getName().toUpperCase()) && incomingRequests.containsKey(requested.getName().toUpperCase())) {
             for (TradeRequest tradeRequest : outgoingRequests.get(requester.getName().toUpperCase())) {
                 if (tradeRequest.getRequested().equals(requested) && !tradeRequest.isCompleted()) {
+                    return tradeRequest;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static TradeRequest getActiveTradeRequest(String requester, String requested) {
+        if (outgoingRequests.containsKey(requester.toUpperCase()) && incomingRequests.containsKey(requested.toUpperCase())) {
+            for (TradeRequest tradeRequest : outgoingRequests.get(requester.toUpperCase())) {
+                if (tradeRequest.getRequested().getName().toUpperCase().equalsIgnoreCase(requested) && !tradeRequest.isCompleted()) {
                     return tradeRequest;
                 }
             }

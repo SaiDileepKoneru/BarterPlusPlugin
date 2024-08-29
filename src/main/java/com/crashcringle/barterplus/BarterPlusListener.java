@@ -116,9 +116,19 @@ public class BarterPlusListener implements Listener {
 //                }
 //            }
 //        }
-        String time = String.valueOf(System.currentTimeMillis());
-        String message = "[CHAT] ["+time+"] "+event.getPlayer().getName() + ": " + event.getMessage();
-        if (!event.getMessage().contains("PRIVATE DM")) {
+        if (!BarterKings.barterGame.inProgress()) {
+            // Only process messages from kalyaniplays or CrashCringle12
+            if (!event.getPlayer().getName().equals("kalyaniplays") && !event.getPlayer().getName().equals("CrashCringle12")) {
+                BarterPlus.inst().getLogger().info("Player " + event.getPlayer().getName() + " tried to chat but the game is not in progress.");
+                return;
+            }
+        }
+        // Format the time in a human readable way
+        String time = java.time.LocalTime.now().toString();
+        String message = "["+time+"] "+event.getPlayer().getName() + ": " + event.getMessage();
+        if (!event.getMessage().isEmpty() && !event.getMessage().contains("private_message") && !event.getMessage().contains("[*]") && !event.getMessage().contains("do_nothing")) {
+            BarterPlus.inst().getLogger().info("+++++++++++++++++++++++++++++++++++++");
+            BarterPlus.inst().getLogger().info(message);
             for (Participant participant : BarterKings.barterGame.getParticipants()) {
                 if (participant instanceof NpcParticipant) {
                     // Check if the npc is currently generating a message
@@ -126,28 +136,15 @@ public class BarterPlusListener implements Listener {
                     npcParticipant.queueMessage(message);
                 }
             }
+        } else {
+            BarterPlus.inst().getLogger().info("-------------------------------------");
+            BarterPlus.inst().getLogger().info(message);
         }
     }
 
     @EventHandler
     public void onNPCMessage(NPCMessageEvent event) {
-//        NpcParticipant npcParticipant = event.getNpcParticipant();
-//        String message = event.getMessage();
-//        String chat = event.getChat();
-//        Bukkit.broadcastMessage(chat);
-//        BarterPlus.inst().getLogger().info("NPC Message Event: "+chat);
-//        for (Participant participant : BarterKings.barterGame.getParticipants()) {
-//            if (participant instanceof NpcParticipant) {
-//                NpcParticipant npc = (NpcParticipant) participant;
-//                if (npc != npcParticipant) {
-//                    if (npc.isGenerating()) {
-//                        npc.chunkMessage(chat);
-//                    } else {
-//                        npc.processMessage(chat);
-//                    }
-//                }
-//            }
-//        }
+
     }
     @EventHandler
     public void onEatEvent(PlayerItemConsumeEvent event) {

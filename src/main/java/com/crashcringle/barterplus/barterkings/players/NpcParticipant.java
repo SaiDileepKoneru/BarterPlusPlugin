@@ -87,7 +87,7 @@ public class NpcParticipant extends Participant {
     }
 
     public void chunkMessage(String message) {
-        chunkedMessage = chatMessages + message;
+        chunkedMessage = chunkedMessage + "\n" + message;
     }
 
     public void processMessage(String message) {
@@ -99,18 +99,19 @@ public class NpcParticipant extends Participant {
                 @Override
                 public void run() {
                         isGenerating = true;
-                    try {
+   //                 try {
                         BarterKings.gptService.processChatGPTMessage(npcParticipant, ChatMessage.toUserMessage(chunkedMessage));
-                    } catch (Exception e) {
-                        // Lets let ChatGPT know it made a mistake so it can correct itself
-                        BarterPlus.inst().getLogger().warning("ChatMessage: "+chunkedMessage);
-                        String json = "{\"error\": \"" + e.getMessage() + "\"}";
-                        BarterPlus.inst().getLogger().warning("Hallucination Error: " + e.getMessage());
-
-                        BarterPlus.inst().getLogger().warning("\n\n**Last Request: " + npcParticipant.getRequest().getMessages().get(npcParticipant.getRequest().getMessages().size()-1).getContent());
-                        BarterKings.gptService.processChatGPTMessage(npcParticipant, ChatMessage.toSystemMessage(json));
-
-                    }
+//                    } catch (Exception e) {
+//                        // Lets let ChatGPT know it made a mistake so it can correct itself
+//                        BarterPlus.inst().getLogger().warning("ChatMessage: "+chunkedMessage);
+//                        String json = "{\"error\": \"" + e.getMessage() + "\"}";
+//                        BarterPlus.inst().getLogger().warning("Hallucination Error: " + e.getMessage());
+//
+//                        BarterPlus.inst().getLogger().warning("\n\n**Last Request: " + npcParticipant.getRequest().getMessages().get(npcParticipant.getRequest().getMessages().size()-1).getContent());
+//                        BarterKings.gptService.processChatGPTMessage(npcParticipant, ChatMessage.toSystemMessage(json));
+//
+//                    }
+                    isGenerating = false;
                     chunkedMessage = "";
                 }
             // Random between 1 and 6 seconds
@@ -181,7 +182,8 @@ public class NpcParticipant extends Participant {
     }
 
     public void sendTradeRequest(TradeRequest tradeRequest) {
-        queueMessage(tradeRequest.toPersonalString());
+        BarterPlus.inst().getLogger().info("Queueing message for " + this.getName() + ": " + tradeRequest.toNPCString());
+        queueMessage(tradeRequest.toNPCString());
     }
 
     public void denyTradeRequest(TradeRequest tradeRequest, boolean initiator) {
@@ -210,20 +212,25 @@ public class NpcParticipant extends Participant {
     }
 
     public void initializeAgent() {
-        thread = BarterKings.gptService.getOpenai().threads().create();
+       // thread = BarterKings.gptService.getOpenai().threads().create();
         String prompt = GPTService.generateSystemPrompt(this);
         globalMessages.add(ChatMessage.toSystemMessage(prompt));
     }
     public ChatRequest getRequest() {
     String model = BarterPlus.inst().model;
     ChatRequest request = ChatRequest.builder()
-            .user(this.name + " (NPC)")
+            .user(this.name + (int) System.currentTimeMillis())
             .model(model)
             .temperature(BarterPlus.inst().temperature)
             .topP(BarterPlus.inst().topP)
             .seed(BarterPlus.inst().seed)
             .messages(getGlobalMessages())
             .addTool(Function.builder()
+                .name("check_desires")
+                .description("Check the items that you need in your inventory to obtain to gain points. There are a finite amount of items, you need to make trades with players to collect them. ")
+                .noParameters()
+                .build()
+            ).addTool(Function.builder()
                     .name("do_nothing")
                     .description("Do not send a response as you deem appropriate.")
                     .noParameters()
@@ -235,7 +242,7 @@ public class NpcParticipant extends Participant {
                     .build()
             ).addTool(Function.builder()
                     .name("trade")
-                    .description("Propose a trade to the player (You can only have a single open trade with a given player).")
+                    .description("Propose a trade to the player. You can only have a maximum of one active trade with each person at a time.")
                     .addStringParameter("player", "The player you are trading with.", true)
                     .addStringParameter("offeredItem", "The item you are offering.", true)
                     .addIntegerParameter("offeredQty", "The quantity of the item you are offering.", true)
@@ -244,7 +251,7 @@ public class NpcParticipant extends Participant {
                     .build()
             ).addTool(Function.builder()
                     .name("accept_trade")
-                    .description("Accept a trade request. This completes the trade and exchanges the items.")
+                    .description("Accept a trade request. This completes the trade and exchanges the items if successful.")
                     .addStringParameter("player", "The player whose request you wish to accept. Omit parameter to accept the most recent request.", true)
                     .build()
             ).addTool(Function.builder()
@@ -260,12 +267,12 @@ public class NpcParticipant extends Participant {
                     .build()
             ).addTool(Function.builder()
                     .name("cancel_trade")
-                    .description("Rescind a trade proposal. This completes the trade request by deleting it.")
+                    .description("Rescind a trade request. This completes the trade request by rescinding it. You can only cancel trades of which you are the sender.")
                     .addStringParameter("player", "The player to rescind your request from. Omit to cancel your most recent request", false)
                     .build()
             ).addTool(Function.builder()
                     .name("check_score")
-                    .description("Check your current score based on items in your inventory. . The maximum possible score is 150pts as there are a finite amount of items.")
+                    .description("Checks the value of all items in your inventory and returns your current score. Items worth 0 pts are worth nothing to you. Check your desires to see what items are worth points.")
                     .noParameters()
                     .build()
             ).addTool(Function.builder()
@@ -273,11 +280,6 @@ public class NpcParticipant extends Participant {
                     .description("List trades you were involved in.")
                     .addBooleanParameter("incoming", "True to show incoming trades, else shows outgoing trades, don't specify to show all", false)
                     .addBooleanParameter("completed", "Whether to list completed trades.", true)
-                    .build()
-            ).addTool(Function.builder()
-                    .name("check_desires")
-                    .description("Check the items that you need in your inventory to obtain to gain points. There are a finite amount of items, you need to make trades with players to collect them.")
-                    .noParameters()
                     .build()
             ).build();
 

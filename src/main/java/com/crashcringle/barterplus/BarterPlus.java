@@ -33,9 +33,10 @@ public final class BarterPlus extends JavaPlugin {
     private Connection connection;
     private BarterKings barterKings;
     public String model = "gpt-4o";
-    public float temperature = 0.7f;
-    public float topP = 0.8f;
-    public int seed = 10;
+    public float temperature = 0f;
+    public float topP = 0.3f;
+    // Use time for seed
+    public int seed = (int) System.currentTimeMillis();
     final String SQL_INSERT_TRADE_REQUEST ="INSERT INTO trade_request(requester, requested, status, time_created, time_finished, game) VALUES (?, ?, ?, ?, ?, ?)";
     final String SQL_INSERT_TRADE_EXCHANGE = "INSERT INTO trade(requestID, material, amount, offerred) VALUES (?, ?, ?, ?)";
 
@@ -69,8 +70,8 @@ public final class BarterPlus extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new MenuFunctionListener(), this);
         instance.getServer().getPluginManager().registerEvents(new BarterPlusListener(), BarterPlus.instance);
 
-        LegacyData.loadTraders();
-        new Database();
+        //LegacyData.loadTraders();
+        //new Database();
         barterKings = new BarterKings(instance);
         Objects.requireNonNull(this.getCommand("barter")).setExecutor(new CommandTrade());
         Objects.requireNonNull(this.getCommand("barter")).setTabCompleter(new ConstructTabCompleter());

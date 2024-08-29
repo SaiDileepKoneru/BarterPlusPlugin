@@ -50,6 +50,7 @@ public class BarterGame {
 
     Participant winner;
     boolean inprogress = false;
+    int id = 0;
 
     public void setParticipants(List<Participant> participants) {
         BarterGame.participants = participants;
@@ -57,6 +58,7 @@ public class BarterGame {
 
     public void Checkup() {
         if (allReady()) {
+
             inprogress = true;
             Bukkit.broadcastMessage(ChatColor.YELLOW + "The Barter Game has begun!");
             setUpProfessions();
@@ -167,14 +169,18 @@ public class BarterGame {
     }
 
     public void attemptStart() {
-        if (!inprogress)
+        if (!inprogress) {
+            getParticipants().clear();
             Checkup();
+        }
         else
             Bukkit.broadcastMessage(ChatColor.YELLOW + "The Barter Game is already in progress!");
     }
     public void attemptStart(int minutes) {
-        if (!inprogress)
+        if (!inprogress) {
+            getParticipants().clear();
             Checkup(minutes);
+        }
         else
             Bukkit.broadcastMessage(ChatColor.YELLOW + "The Barter Game is already in progress!");
     }
@@ -265,8 +271,7 @@ public class BarterGame {
         }
 
         inprogress = false;
-        getParticipants().clear();
-        
+
     }
     
     public void removeParticipant(Player player) {
