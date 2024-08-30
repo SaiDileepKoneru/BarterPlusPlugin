@@ -60,6 +60,7 @@ public class BarterGame {
         if (allReady()) {
 
             inprogress = true;
+            id = (int) System.currentTimeMillis();
             Bukkit.broadcastMessage(ChatColor.YELLOW + "The Barter Game has begun!");
             setUpProfessions();
             setUpParticipants();
@@ -75,6 +76,7 @@ public class BarterGame {
     public void Checkup(int minutes) {
         if (allReady()) {
             inprogress = true;
+            id = (int) System.currentTimeMillis();
             Bukkit.broadcastMessage(ChatColor.YELLOW + "The Barter Game has begun!");
             setUpProfessions();
             setUpParticipants();
@@ -132,6 +134,7 @@ public class BarterGame {
             participant.getPlayer().setScoreboard(createScoreboard(participant.getProfession()));
             participant.getPlayer().teleport(new Location(Bukkit.getWorld("world"), -704 + Math.random()*5, 73, 71 + Math.random()*5));
         }
+
     }
 
     public boolean inProgress() {
@@ -293,7 +296,7 @@ public class BarterGame {
 
     public  Participant getParticipant(String name) {
         for (Participant participant : getParticipants()) {
-            if (participant.getName().equals(name)) {
+            if (participant.getName().equalsIgnoreCase(name)) {
                 return participant;
             }
         }

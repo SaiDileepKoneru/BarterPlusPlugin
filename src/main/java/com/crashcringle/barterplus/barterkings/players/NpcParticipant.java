@@ -111,7 +111,7 @@ public class NpcParticipant extends Participant {
 //                        BarterKings.gptService.processChatGPTMessage(npcParticipant, ChatMessage.toSystemMessage(json));
 //
 //                    }
-                    isGenerating = false;
+
                     chunkedMessage = "";
                 }
             // Random between 1 and 6 seconds
@@ -219,7 +219,7 @@ public class NpcParticipant extends Participant {
     public ChatRequest getRequest() {
     String model = BarterPlus.inst().model;
     ChatRequest request = ChatRequest.builder()
-            .user(this.name + (int) System.currentTimeMillis())
+            .user(this.name + "-" + BarterKings.barterGame.id)
             .model(model)
             .temperature(BarterPlus.inst().temperature)
             .topP(BarterPlus.inst().topP)
@@ -262,13 +262,13 @@ public class NpcParticipant extends Participant {
                     .build()
             ).addTool(Function.builder()
                     .name("decline_trade")
-                    .description("Decline a trade request. This completes the trade by rejecting it.")
+                    .description("Decline a trade request. This completes the trade request by rejecting it. Use this to reject an offer.")
                     .addStringParameter("player", "The player whose request you wish to decline. Omit parameter to decline the most recent request.", false)
                     .build()
             ).addTool(Function.builder()
-                    .name("cancel_trade")
-                    .description("Rescind a trade request. This completes the trade request by rescinding it. You can only cancel trades of which you are the sender.")
-                    .addStringParameter("player", "The player to rescind your request from. Omit to cancel your most recent request", false)
+                    .name("rescind_trade")
+                    .description("Rescind a trade request. This completes the trade request by rescinding it. You can only rescind trades that you have sent/initiated. Use this to cancel an offer you have made.")
+                    .addStringParameter("player", "The player to rescind your request from. Omit to rescind your most recent request", false)
                     .build()
             ).addTool(Function.builder()
                     .name("check_score")

@@ -332,11 +332,11 @@ public class TradeRequest {
                             sendMessage(ChatColor.GOLD + "Trade completed!");
                         } else {
                             sendMessage(ChatColor.DARK_RED + "The requester does not have the requested item! Trade failed!");
-                            setFailed(true, "FAIL1 - Requester does not have the offered item");
+                            setFailed(true, "FAIL1 - Requester (" + requester.getName() +") does not have the offered item");
                         }
                     } else {
                         sendMessage(ChatColor.DARK_RED + "The requested player does not have the offered item! Trade failed!");
-                        setFailed(true, "FAIL2 - Requested player does not have the requested item");
+                        setFailed(true, "FAIL2 - Requested player (" + requested.getName() +") does not have the requested item");
                     }
                 } else {
                     sendMessage(ChatColor.DARK_RED + "The offered item is not valid! Trade failed!");

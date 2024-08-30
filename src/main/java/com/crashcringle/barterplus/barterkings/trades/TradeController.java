@@ -91,13 +91,15 @@ public class TradeController {
             requester.spigot().sendMessage(message);
             return request;
         } else {
-            TradeRequest request = new TradeRequest(requester, requested, trade, true, "FAIL5 - You already have an active outgoing trade with this player");
+            TradeRequest request = new TradeRequest(requester, requested, trade, true, "FAIL5 - You ("+requester.getName() +") already have an active outgoing trade with " + requested.getName() + ". Please rescind it or ask the receiver to accept/decline");
             requester.sendMessage(ChatColor.DARK_RED + "You have already requested an active trade with " + requested.getName());
             return request;
         }
     }
 
     public static TradeRequest sendTradeRequest(String requesterStr, String requestedStr, Trade trade) {
+        requesterStr = requesterStr.toUpperCase();
+        requestedStr = requestedStr.toUpperCase();
         Player requester = null, requested = null;
         // Loop through all participants to find the requested and requester
         for (Participant participant : BarterKings.barterGame.getParticipants()) {
@@ -158,6 +160,8 @@ public class TradeController {
     }
 
     public static TradeRequest acceptTrade(String requested, String requester) {
+        requested = requested.toUpperCase();
+        requester = requester.toUpperCase();
         if (incomingRequests.containsKey(requested.toUpperCase())) {
             for (TradeRequest request : incomingRequests.get(requested.toUpperCase())) {
                 if (request.getRequester().getName().equalsIgnoreCase(requester.toUpperCase()) && !request.isCompleted()) {
@@ -227,9 +231,11 @@ public class TradeController {
     }
 
     public static TradeRequest denyTrade(String requested, String requester) {
+        requested = requested.toUpperCase();
+        requester = requester.toUpperCase();
         if (incomingRequests.containsKey(requested)) {
             for (TradeRequest request : incomingRequests.get(requested)) {
-                if (request.getRequester().equals(requester) && !request.isCompleted()) {
+                if (request.getRequester().getName().equalsIgnoreCase(requester) && !request.isCompleted()) {
                     declineTradeRequest(request);
                     return request;
                 }
@@ -266,6 +272,7 @@ public class TradeController {
     }
 
     public static TradeRequest cancelRecentTrade(String player) {
+        player = player.toUpperCase();
         if (outgoingRequests.containsKey(player)) {
             TradeRequest request = Collections.max(outgoingRequests.get(player), Comparator.comparing(TradeRequest::getBeginTime));
             cancelTradeRequest(request);
@@ -290,9 +297,9 @@ public class TradeController {
     }
 
     public static TradeRequest cancelTrade(String requester, String requested) {
-        if (outgoingRequests.containsKey(requester)) {
-            for (TradeRequest request : outgoingRequests.get(requester)) {
-                if (request.getRequested().equals(requested) && !request.isCompleted()) {
+        if (outgoingRequests.containsKey(requester.toUpperCase())) {
+            for (TradeRequest request : outgoingRequests.get(requester.toUpperCase())) {
+                if (request.getRequested().getName().equalsIgnoreCase(requested) && !request.isCompleted()) {
                     cancelTradeRequest(request);
                     return request;
                 }
