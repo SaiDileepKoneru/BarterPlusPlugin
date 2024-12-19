@@ -219,7 +219,7 @@ public class NpcParticipant extends Participant {
     public ChatRequest getRequest() {
     String model = BarterPlus.inst().model;
     ChatRequest request = ChatRequest.builder()
-            .user(this.name + "-" + BarterKings.barterGame.id)
+            .user(this.name + "-" + BarterKings.barterGame.getId())
             .model(model)
             .temperature(BarterPlus.inst().temperature)
             .topP(BarterPlus.inst().topP)

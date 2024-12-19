@@ -36,6 +36,7 @@ public class Participant  {
    // @Column
     Player player;
     int score = 0;
+    int starterScore = 0;
     Player clickedPlayer;
     boolean ready;
 

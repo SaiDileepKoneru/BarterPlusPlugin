@@ -87,8 +87,12 @@ public class BarterGame {
         } else {
             Bukkit.broadcastMessage(ChatColor.YELLOW + "Not all players are ready!");
         }
-
     }
+
+    public int getId() {
+        return id;
+    }
+
     public BarterGame() {
         participants = new ArrayList<>();
 
@@ -203,6 +207,17 @@ public class BarterGame {
             }
             Bukkit.broadcastMessage(ChatColor.GOLD + "Rank " + ChatColor.YELLOW + (i + 1) + ChatColor.GOLD + " is " + ChatColor.YELLOW + participant.getPlayer().getName() + ChatColor.GOLD + " with a score of " + color + participant.getScore());
         }
+        // Broadcast the total increase in score for each participant
+        for (Participant participant : getParticipants()) {
+            int increase = participant.getScore() - participant.starterScore;
+            ChatColor color;
+            if (increase > 0) {
+                color = ChatColor.GREEN;
+            } else {
+                color = ChatColor.RED;
+            }
+            Bukkit.broadcastMessage(ChatColor.GOLD + participant.getPlayer().getName() + " has increased their score by " + color + increase);
+        }
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt end barterKings");
         for (Participant participant : getParticipants()) {
             try {
@@ -219,6 +234,7 @@ public class BarterGame {
         barterGame.put("model", BarterPlus.inst().model);
         barterGame.put("temperature", BarterPlus.inst().temperature);
         barterGame.put("topP", BarterPlus.inst().topP);
+        barterGame.put("id", id);
         barterGame.put("winner", winner.getPlayer().getName());
         barterGame.put("score", winner.getScore());
         barterGame.put("participants", getParticipants().size());
@@ -245,7 +261,7 @@ public class BarterGame {
                 JSONParser parser = new JSONParser();
                 try {
                     String content = new String(Files.readAllBytes(Path.of(BarterPlus.inst().getDataFolder().getPath() + "/barterGame.json")));
-                    BarterPlus.inst().getLogger().log(Level.INFO, content);
+                  //  BarterPlus.inst().getLogger().log(Level.INFO, content);
                     // Log the contents of the file
                     Object p = parser.parse(content);
                     if(p instanceof JSONArray){
@@ -387,6 +403,12 @@ public class BarterGame {
         distributeTier2Items();
         distributeTier3Items();
 
+        // Log the scores of all players
+        for (Participant participant : getParticipants()) {
+            participant.calculateTrueSilentScore();
+            BarterPlus.inst().getLogger().info(participant.getPlayer().getName() + " has a score of " + participant.getScore());
+            participant.starterScore = participant.getScore();
+        }
     }
     public void distributeTier1Items() {
         int randomIndex;
