@@ -51,7 +51,7 @@ public class GPTService {
         openai = OpenAI.builder()
                 .apiKey(key)
                 .build();
-       // assistant = openai.assistants().retrieve("asst_SdbFT7Znc78YldySYVWweJYL");
+        assistant = openai.assistants().retrieve("asst_SdbFT7Znc78YldySYVWweJYL");
         this.game = game;
         this.controller = controller;
 
@@ -68,36 +68,10 @@ public class GPTService {
             if (call.getType() != Tool.Type.FUNCTION)
                 throw new HallucinationException("Unknown tool call type: " + call.getType());
             FunctionCall function = ((FunctionToolCall) call).getFunction();
-            // Example responses:
-            //[FunctionToolCall(id=call_yExYPh2twxVGm8LoePmf0n99, function=FunctionCall(name=multi_tool_use.parallel, arguments={"tool_uses":[{"recipient_name":"functions.check_inventory","parameters":{}},{"recipient_name":"functions.check_desires","parameters":{}}]}, output=null))], toolCallId=null), finishReason=TOOL_CALLS)]
-            // unction=FunctionCall(name=private_message, arguments={"player":"Kalyani","message":"Do you have any tropical fish? I need that."}, output=null))], toolCallId=null), finishReason=TOOL_CALLS)]
-
             if (function.getName().contains("multi_tool_use.parallel")) {
-//                BarterPlus.inst().getLogger().info("Multi-tool use is not supported, Please call functions individually");
-//                return new ChatMessage(ChatUser.TOOL, "Multi-tool use is not supported, Please call functions individually", null, call.getId());
-                // Get tool_uses
-                // Each recipient_name is a function's name, parameters are the arguments
-                Map<String, JsonNode> arguments = function.tryParseArguments(null); // You can pass null here for less strict parsing
-                JsonNode toolUses = arguments.get("tool_uses");
-                if (toolUses == null) {
-                    throw new HallucinationException("No tool uses found");
-                }
-                // Get the tool uses
-                for (JsonNode toolUse : toolUses) {
-                    // Get the recipient name
-                    String recipientName = toolUse.get("recipient_name").asText();
-                    // Get the parameters
-                    JsonNode parameters = toolUse.get("parameters");
-//                    // Create a new function call
-//                    Function callFunction = new FunctionCall(recipientName, parameters);
-//                    // Create a new tool call
-//                    ToolCall newToolCall = new FunctionToolCall(newFunction);
-//                    // Handle the tool call
-//                    handleToolCall(npc, newToolCall, validTools);
-                }
-
+                BarterPlus.inst().getLogger().info("Multi-tool use is not supported, Please call functions individually");
+                return new ChatMessage(ChatUser.TOOL, "Multi-tool use is not supported, Please call functions individually", null, call.getId());
             }
-
             Map<String, JsonNode> arguments = function.tryParseArguments(validTools); // You can pass null here for less strict parsing
             Player npcPlayer = npc.getPlayer();
             BarterPlus.inst().getLogger().info("Tool Call: " + function.getName());
@@ -129,7 +103,6 @@ public class GPTService {
                     return new ChatMessage(ChatUser.TOOL, scoreBreakdown, null, call.getId());
                 case "trade":
                     // Get the trade arguments
-                    arguments.get("");
                     String player = arguments.get("player").asText();
                     // Check if the player is in the game
                     if (BarterKings.barterGame.getParticipant(player) == null) {
@@ -170,57 +143,6 @@ public class GPTService {
                         Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), "[*][trade -> "+ player + "] " + offeredQty + " " + offeredItem + " for " + requestedQty + " " + requestedItem, new HashSet<>(Bukkit.getOnlinePlayers())));
                         return new ChatMessage(ChatUser.TOOL, "Trade request sent to " + player, null, call.getId());
                     }
-                case "multi_trade":
-                    // There can be up to 6 offered items and 6 requested items
-                    // Do a loop checking to see how many we have for each and add them to the list.
-                    List<ItemStack> offeredItems = new ArrayList<>();
-                    List<ItemStack> requestedItems = new ArrayList<>();
-                    for (int i = 1; i <= 6; i++) {
-                        // Check if the item exists
-                        JsonNode offeredItemNode = arguments.get("offeredItem" + i);
-                        JsonNode requestedItemNode = arguments.get("requestedItem" + i);
-                        if (offeredItemNode == null || requestedItemNode == null) {
-                            break;
-                        }
-                        // Get the item and quantity
-                        String multi_offeredItem = offeredItemNode.asText();
-                        int multi_offeredQty = arguments.get("offeredQty" + i).asInt();
-                        String multi_requestedItem = requestedItemNode.asText();
-                        int multi_requestedQty = arguments.get("requestedQty" + i).asInt();
-                        // Verify the items are valid item
-                        Material multi_offeredMaterial = Material.matchMaterial(multi_offeredItem);
-                        Material multi_requestedMaterial = Material.matchMaterial(multi_requestedItem);
-                        if (multi_offeredMaterial == null || multi_requestedMaterial == null) {
-                            // Throw hallucination exception and provide the invalid item name(s) if the material is null
-                            throw new HallucinationException("Invalid item ID(s): " + (multi_offeredMaterial == null ? multi_offeredItem : "") + (multi_requestedMaterial == null ? multi_requestedItem : ""));
-                        }
-                        // Create the items stacks
-                        ItemStack multi_offeredStack = new ItemStack(multi_offeredMaterial, multi_offeredQty);
-                        ItemStack multi_requestedStack = new ItemStack(multi_requestedMaterial, multi_requestedQty);
-                        // Add the items to the list
-                        offeredItems.add(multi_offeredStack);
-                        requestedItems.add(multi_requestedStack);
-                    }
-                    // Make sure the lists are not empty
-                    if (offeredItems.isEmpty() || requestedItems.isEmpty()) {
-                        throw new HallucinationException("No items found");
-                    }
-                    // Create the trade
-                    Trade multiTrade = new Trade(offeredItems, requestedItems);
-                    // Get the player argument
-                    String multiPlayer = arguments.get("player").asText();
-                    // Send the trade request
-                    BarterPlus.inst().getLogger().info("Sending multitrade request to " + multiPlayer);
-                    TradeRequest multiRequest = TradeController.sendTradeRequest(npcPlayer.getName(), multiPlayer, multiTrade);
-                    if (multiRequest == null) {
-                        throw new HallucinationException("Request failed to send");
-                    }
-                    if (multiRequest.isFailed()) {
-                        Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), "[*][FAILED][multi_trade -> "+ multiPlayer + "] " + multiRequest.getFailedReason(), new HashSet<>(Bukkit.getOnlinePlayers())));
-                        return new ChatMessage(ChatUser.TOOL, "Trade request failed: " + multiRequest.getFailedReason(), null, call.getId());
-                    }
-                    Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), "[*][multi_trade -> "+ multiPlayer + "] " + multiRequest.toString(), new HashSet<>(Bukkit.getOnlinePlayers())));
-                    return new ChatMessage(ChatUser.TOOL, "Trade request sent to " + multiPlayer, null, call.getId());
                 case "accept_trade":
                     // If there are no arguments, accept the most recent trade
                     if (arguments.isEmpty()) {
@@ -541,143 +463,6 @@ public class GPTService {
         npc.setGenerating(false);
         return messages;
     }
-
-    public List<ChatMessage> processChatGPTMessage(NpcParticipant npc, GeminiChatMessage message)  {
-
-        // Every 4 chars is 1 token, print how many tokens exist in the global messages list by checking how many characters are in each individual message
-        // If total there are greater than 1000 tokens, remove the first message in the list.
-        int tokens = npc.getGlobalMessages().stream()
-                .mapToInt(m -> Optional.ofNullable(m.getContent()).map(content -> content.length() / 4).orElse(0))
-                .sum();
-        BarterPlus.inst().getLogger().info(
-                npc.getName() + " Tokens: " + tokens + " Messages: " + npc.getGlobalMessages().size()
-        );
-
-//        if (tokens > 1900) {
-//            // Keep removing the second message until the tokens are less than 1800
-//            while (tokens > 1800) {
-//                BarterPlus.inst().getLogger().info("Removing message: " + npc.getGlobalMessages().get(1).getContent());
-//                List<ChatMessage> newGlobalMessages = new ArrayList<>(npc.getGlobalMessages());
-//                newGlobalMessages.remove(2);
-//                npc.setGlobalMessages(newGlobalMessages);
-//                tokens = npc.getGlobalMessages().stream()
-//                        .mapToInt(m -> Optional.ofNullable(m.getContent()).map(content -> content.length() / 4).orElse(0))
-//                        .sum();
-//            }
-//        }
-
-        List<ChatMessage> messages = npc.getGlobalMessages();
-        ChatRequest request = npc.getRequest();
-        // Add the user's message to the list
-
-        npc.addGlobalMessage(message);
-        BarterPlus.inst().getLogger().info("Generating Response for " + npc.getPlayer().getName() + "...");
-        npc.setGenerating(true);
-        //BarterPlus.inst().getLogger().info("\n\nRequest: " + request.toString() +"\n\n");
-        // Generate a response
-        boolean madeToolCall;
-        boolean sayNothing = false;
-        do {
-            madeToolCall = false;
-//            for (ChatResponseChunk chunk : openai.streamChatCompletion(request)) {
-//                String delta = chunk.get(0).getDeltaContent();
-//                if (delta != null) {
-//                }
-//
-//                // When the response is finished, we can add it to the messages list.
-//                if (chunk.get(0).isFinished())
-//                    messages.add(chunk.get(0).getMessage());
-//            }
-            //ChatResponse response2 = openai.createChatCompletion(request);
-            // If we get an exception try again 4 times every 10 seconds
-            // Use Bukkit scheduler to run after a 10 second delay
-            ChatResponse response2 = openai.createChatCompletion(request);
-            //BarterPlus.inst().getLogger().info("Response: " + response2.toString());
-            messages.add(response2.get(0).getMessage());
-            try {
-                File file = new File(BarterPlus.inst().getDataFolder().getPath() +"/requests/request-" + request.getUser() + ".json");
-                // Write the contents of the request to the file
-                FileWriter writer = new FileWriter(file);
-                writer.write("********************\n"+request.toString() + "\n\n");
-                for (ChatMessage message2 : messages) {
-                    writer.write(message2.getContent() + "\n");
-                }
-                writer.write(response2.get(0).getMessage().toString());
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            // Get a random item out the npcs inventory to trade
-            Player npcPlayer = npc.getPlayer();
-
-            // If the API returned a tool call to us, we need to handle it.
-            List<ToolCall> toolCalls = messages.get(messages.size() - 1).getToolCalls();
-            // BarterPlus.inst().getLogger().info("Response: " + messages.get(messages.size() - 1) + "\n\n");
-
-            if (toolCalls != null) {
-                madeToolCall = true;
-                for (ToolCall call : toolCalls) {
-                    ChatMessage response = handleToolCall(npc, call, request.getTools());
-
-                    if (response.getContent().contains("do_nothing") || response.getContent().contains("[Saying Nothing]")  || response.getContent().contains("private_message") ) {
-                        sayNothing = true;
-                    }
-                    messages.add(response);
-                }
-            } else {
-                if (messages.get(messages.size() - 1).getContent().contains("do_nothing") || messages.get(messages.size() - 1).getContent() == null || messages.get(messages.size() - 1).getContent().isEmpty() || messages.get(messages.size() - 1).getContent().isBlank()) {
-                    sayNothing = true;
-                }
-                if (!sayNothing) {
-                    ChatColor color = switch (npc.getProfession().getName()) {
-                        case "Farmer" -> ChatColor.GREEN;
-                        case "Fisherman" -> ChatColor.AQUA;
-                        case "Mason" -> ChatColor.GRAY;
-                        case "Shepherd" -> ChatColor.BLUE;
-                        case "Blacksmith" -> ChatColor.DARK_GRAY;
-                        case "Librarian" -> ChatColor.DARK_BLUE;
-                        case "Butcher" -> ChatColor.RED;
-                        case "Lumberjack" -> ChatColor.DARK_GREEN;
-                        case "Leatherworker" -> ChatColor.GOLD;
-                        default -> ChatColor.WHITE;
-                    };
-                    // Color the chat based on the professions
-                    String chat = "<" + npcPlayer.getName() + "> " + color + messages.get(messages.size() - 1).getContent();
-                    // Bukkit.broadcastMessage(chat);
-                    String time = String.valueOf(System.currentTimeMillis());
-                    String daMessage = "["+time+"] "+npcPlayer.getName() + ": " + messages.get(messages.size() - 1).getContent();
-                    // Call AsyncPlayerChatEvent
-                    Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), messages.get(messages.size() - 1).getContent().strip(), new HashSet<>(Bukkit.getOnlinePlayers())));
-                    BarterPlus.inst().getLogger().info(chat);
-
-                    // Send to all players in the server
-                    for (Player player : Bukkit.getOnlinePlayers()) {
-                        player.sendMessage(chat);
-                    }
-
-//                    for (Participant participant : BarterKings.barterGame.getParticipants()) {
-//                        if (participant instanceof NpcParticipant) {
-//                            NpcParticipant npcParticipant = (NpcParticipant) participant;
-//                            if (npc != npcParticipant) {
-//                                if (npcParticipant.isGenerating()) {
-//                                    npcParticipant.chunkMessage(daMessage);
-//                                } else {
-//                                    npcParticipant.processMessage(daMessage);
-//                                }
-//                            }
-//                        }
-//                    }
-                } else {
-                    BarterPlus.inst().getLogger().info("Saying nothing");
-                }
-            }
-
-            // Loop until we get a message without tool calls
-        } while (madeToolCall);
-        npc.setGenerating(false);
-        return messages;
-    }
-
 
     public List<String> processChatGPTMessage2(NpcParticipant npc, Thread thread) {
         Run run = npc.getRun();

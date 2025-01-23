@@ -214,11 +214,6 @@ public class Participant  {
         BarterPlus.inst().getLogger().log(Level.INFO, "*********************************************");
     }
 
-    public int getScore() {
-        calculateTrueSilentScore();
-        return score;
-    }
-
     public void calculateTrueSilentScore() {
         int score = 0;
         if (this.getProfession() == null) {

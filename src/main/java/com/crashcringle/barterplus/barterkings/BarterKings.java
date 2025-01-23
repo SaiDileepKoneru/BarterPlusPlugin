@@ -1,7 +1,6 @@
 package com.crashcringle.barterplus.barterkings;
 
 import com.crashcringle.barterplus.BarterPlus;
-import com.crashcringle.barterplus.barterkings.ai.GeminiService;
 import com.crashcringle.barterplus.barterkings.players.BarterGame;
 import com.crashcringle.barterplus.barterkings.villagers.MalmoTrader;
 import com.crashcringle.barterplus.barterkings.ai.GPTService;
@@ -16,7 +15,6 @@ public class BarterKings {
     public static Map<Integer, MalmoTrader> traders = new HashMap<>();
     public static BarterGame barterGame;
     public static GPTService gptService;
-    public static GeminiService geminiService;
     public static TradeController controller;
     public static NPC npc;
 
@@ -28,7 +26,6 @@ public class BarterKings {
         barterGame = new BarterGame();
         controller = new TradeController();
         gptService = new GPTService(barterGame, controller);
-        geminiService = new GeminiService(barterGame, controller);
         return barterGame;
     }
 

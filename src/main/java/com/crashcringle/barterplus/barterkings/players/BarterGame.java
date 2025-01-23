@@ -376,23 +376,12 @@ public class BarterGame {
     }
 
     public void setUpParticipants() {
-        int counter = 0;
         for (NPC npc : CitizensAPI.getNPCRegistry()) {
             if (npc.hasTrait(BarterTrait.class)) {
-                BarterPlus.inst().getLogger().info("Adding NPC " + npc.getName());
-                Player player = (Player) npc.getEntity();
-                BarterPlus.inst().getLogger().info("Player " + player.getName());
-                participants.add(counter % 2 == 0 ? new GeminiNPC(npc) : new NpcParticipant(npc));
-                counter++;
+                participants.add(new NpcParticipant(npc));
                 // Clear their inventory
                 ((Player) npc.getEntity()).getInventory().clear();
             }
-        }
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            Participant participant = new Participant(player);
-           // participant.setProfession(getRandomProfession());
-            //BarterPlus.inst().getLogger().info("Player " + player.getName() + " has been assigned the profession " + participant.getProfession().getName());
-            participants.add(participant);
         }
         for (Participant participant : getParticipants()) {
 //            if (Objects.equals(participant.name, "JOHN")) {
