@@ -57,7 +57,7 @@ public class TradeRequest {
         this.finishedTimestamp = new Timestamp(0);
         BarterKings.barterGame.getParticipant(requester).calculateTrueSilentScore();
         BarterKings.barterGame.getParticipant(requested).calculateTrueSilentScore();
-        this.initialScores = new int[]{BarterKings.barterGame.getParticipant(requester).getScore(), BarterKings.barterGame.getParticipant(requester).getScore()};
+        this.initialScores = new int[]{BarterKings.barterGame.getParticipant(requester).getScore(), BarterKings.barterGame.getParticipant(requested).getScore()};
         // Check if the requested player is an npc
         if (BarterKings.barterGame.getParticipant(requested) instanceof NpcParticipant) {
             NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requested);
@@ -77,7 +77,7 @@ public class TradeRequest {
         this.finishedTimestamp = new Timestamp(0);
         BarterKings.barterGame.getParticipant(requester).calculateTrueSilentScore();
         BarterKings.barterGame.getParticipant(requested).calculateTrueSilentScore();
-        this.initialScores = new int[]{BarterKings.barterGame.getParticipant(requester).getScore(), BarterKings.barterGame.getParticipant(requester).getScore()};
+        this.initialScores = new int[]{BarterKings.barterGame.getParticipant(requester).getScore(), BarterKings.barterGame.getParticipant(requested).getScore()};
         this.setFailed(isFailed, reason);
 
     }
