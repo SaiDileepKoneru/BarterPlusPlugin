@@ -33,8 +33,8 @@ public final class BarterPlus extends JavaPlugin {
     private Connection connection;
     private BarterKings barterKings;
     public String model = "gpt-4o";
-    public float temperature = 0f;
-    public float topP = 0.3f;
+    public float temperature = 0.7f;
+    public float topP = 0.8f;
     // Use time for seed
     public int seed = (int) System.currentTimeMillis();
     final String SQL_INSERT_TRADE_REQUEST ="INSERT INTO trade_request(requester, requested, status, time_created, time_finished, game) VALUES (?, ?, ?, ?, ?, ?)";
@@ -77,10 +77,10 @@ public final class BarterPlus extends JavaPlugin {
         Objects.requireNonNull(this.getCommand("barter")).setTabCompleter(new ConstructTabCompleter());
         // set model, temperature, topP, seed from config
         Configuration config = this.getConfig();
-        model = config.getString("openai-model");
-        temperature = (float) config.getDouble("openai-temperature");
-        topP = (float) config.getDouble("openai-topP");
-        seed = config.getInt("openai-seed");
+       // model = config.getString("openai-model");
+       // temperature = (float) config.getDouble("openai-temperature");
+        //topP = (float) config.getDouble("openai-topP");
+        //seed = config.getInt("openai-seed");
 
         //check if Citizens is present and enabled.
 

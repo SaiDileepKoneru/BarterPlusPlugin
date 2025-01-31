@@ -12,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -68,6 +69,33 @@ public class BarterGame {
             distributeItems();
             teleportPlayers();
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt begin 30m barterKings white &6&lBarter Plus! &e&l<minutes> &6minutes and &e&l<seconds> &6seconds left!");
+            // Every 5 minutes, check if the game is in progress and if so, send a message to the chat of time remaining:
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (inprogress) {
+                        // Check if the game has been going on for more than 30 minutes
+                        if (id < (int) System.currentTimeMillis() - 1800000) {
+                            attemptEnd();
+                            // End the task
+                            cancel();
+                        } else {
+                            // Send chat message to all players of time remaining rounded to nearest minute
+                            int time = (int) Math.round((1800000 - ((int) System.currentTimeMillis() - id)) / 60000.0);
+                            String chat = ChatColor.GOLD + "" + ChatColor.BOLD + "The Barter Game has " + ChatColor.YELLOW + time + " minutes" + ChatColor.GOLD + " left!";
+                            // Get an NPC by the name of "Broadcast"
+                            NPC npc = CitizensAPI.getNPCRegistry().getById(5);
+                            Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, (Player) npc.getEntity(), chat.strip(), new HashSet<>(Bukkit.getOnlinePlayers())));
+                            BarterPlus.inst().getLogger().info(chat);
+                            // Send to all players in the server
+                            for (Player player : Bukkit.getOnlinePlayers()) {
+                                player.sendMessage(chat);
+                            }
+
+                        }
+                    }
+                }
+            }.runTaskTimerAsynchronously(BarterPlus.inst(), 0L, 6000L);
         } else {
             Bukkit.broadcastMessage(ChatColor.YELLOW + "Not all players are ready!");
         }
@@ -92,6 +120,7 @@ public class BarterGame {
     public int getId() {
         return id;
     }
+
 
     public BarterGame() {
         participants = new ArrayList<>();
@@ -136,7 +165,7 @@ public class BarterGame {
     public void teleportPlayers() {
         for (Participant participant : participants) {
             participant.getPlayer().setScoreboard(createScoreboard(participant.getProfession()));
-            participant.getPlayer().teleport(new Location(Bukkit.getWorld("world"), -704 + Math.random()*5, 73, 71 + Math.random()*5));
+            participant.getPlayer().teleport(new Location(Bukkit.getWorld("world"), -4692 + Math.random()*5, 81, -969 + Math.random()*5));
         }
 
     }
@@ -218,6 +247,7 @@ public class BarterGame {
             }
             Bukkit.broadcastMessage(ChatColor.GOLD + participant.getPlayer().getName() + " has increased their score by " + color + increase);
         }
+
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt end barterKings");
         for (Participant participant : getParticipants()) {
             try {
@@ -378,7 +408,7 @@ public class BarterGame {
     public void setUpParticipants() {
         for (NPC npc : CitizensAPI.getNPCRegistry()) {
             if (npc.hasTrait(BarterTrait.class)) {
-                participants.add(new NpcParticipant(npc));
+                participants.add(new GeminiNPC(npc));
                 // Clear their inventory
                 ((Player) npc.getEntity()).getInventory().clear();
             }
@@ -405,6 +435,8 @@ public class BarterGame {
 
         // Log the scores of all players
         for (Participant participant : getParticipants()) {
+            // Give every participant a single book
+            participant.getPlayer().getInventory().addItem(new ItemStack(Material.BOOK));
             participant.calculateTrueSilentScore();
             BarterPlus.inst().getLogger().info(participant.getPlayer().getName() + " has a score of " + participant.getScore());
             participant.starterScore = participant.getScore();

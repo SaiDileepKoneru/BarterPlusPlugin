@@ -23,8 +23,8 @@ public class TradeRequest {
     private Player requester;
     private Player requested;
 
-    private ItemStack[] requesterInventory;
-    private ItemStack[] requestedInventory;
+    private final ItemStack[] requesterInventory;
+    private final ItemStack[] requestedInventory;
     private boolean accepted = false;
     @Getter
     private Trade trade;
@@ -36,10 +36,10 @@ public class TradeRequest {
     
     private boolean cancelled = false;
     private RequestStatus requestStatus = RequestStatus.PENDING;
-    private Timestamp beginTimestamp;
+    private final Timestamp beginTimestamp;
     private int gameID = 0;
     private Timestamp finishedTimestamp;
-    int[] initialScores = new int[2];
+    final int[] initialScores = new int[2];
     int[] finalScores = new int[2];
     String requestID = "";
 
@@ -49,6 +49,18 @@ public class TradeRequest {
     public TradeRequest(Player requester, Player requested, Trade trade) {
         this.requester = requester;
         this.requested = requested;
+        requestedInventory = requested.getInventory().getContents().clone();
+        for (int i = 0; i < requestedInventory.length; i++) {
+            if (requestedInventory[i] != null) {
+                requestedInventory[i] = new ItemStack(requestedInventory[i].getType(), requestedInventory[i].getAmount());
+            }
+        }
+        requesterInventory = requester.getInventory().getContents().clone();
+        for (int i = 0; i < requesterInventory.length; i++) {
+            if (requesterInventory[i] != null) {
+                requesterInventory[i] = new ItemStack(requesterInventory[i].getType(), requesterInventory[i].getAmount());
+            }
+        }
         this.trade = trade;
         this.beginTimestamp = new Timestamp(System.currentTimeMillis());
         this.requestID = requester.getName() + requested.getName() + beginTimestamp.getTime();
@@ -57,18 +69,30 @@ public class TradeRequest {
         this.finishedTimestamp = new Timestamp(0);
         BarterKings.barterGame.getParticipant(requester).calculateTrueSilentScore();
         BarterKings.barterGame.getParticipant(requested).calculateTrueSilentScore();
-        this.initialScores = new int[]{BarterKings.barterGame.getParticipant(requester).getScore(), BarterKings.barterGame.getParticipant(requester).getScore()};
+        this.initialScores[0] = BarterKings.barterGame.getParticipant(requester).getScore();
+        this.initialScores[1] = BarterKings.barterGame.getParticipant(requested).getScore();
         // Check if the requested player is an npc
         if (BarterKings.barterGame.getParticipant(requested) instanceof NpcParticipant) {
             NpcParticipant npcParticipant = (NpcParticipant) BarterKings.barterGame.getParticipant(requested);
             npcParticipant.sendTradeRequest(this);
         }
-
     }
 
     public TradeRequest(Player requester, Player requested, Trade trade, boolean isFailed, String reason) {
         this.requester = requester;
         this.requested = requested;
+        requestedInventory = requested.getInventory().getContents().clone();
+        for (int i = 0; i < requestedInventory.length; i++) {
+            if (requestedInventory[i] != null) {
+                requestedInventory[i] = new ItemStack(requestedInventory[i].getType(), requestedInventory[i].getAmount());
+            }
+        }
+        requesterInventory = requester.getInventory().getContents().clone();
+        for (int i = 0; i < requesterInventory.length; i++) {
+            if (requesterInventory[i] != null) {
+                requesterInventory[i] = new ItemStack(requesterInventory[i].getType(), requesterInventory[i].getAmount());
+            }
+        }
         this.trade = trade;
         this.beginTimestamp = new Timestamp(System.currentTimeMillis());
         this.requestID = requester.getName() + requested.getName() + beginTimestamp.getTime();
@@ -77,7 +101,8 @@ public class TradeRequest {
         this.finishedTimestamp = new Timestamp(0);
         BarterKings.barterGame.getParticipant(requester).calculateTrueSilentScore();
         BarterKings.barterGame.getParticipant(requested).calculateTrueSilentScore();
-        this.initialScores = new int[]{BarterKings.barterGame.getParticipant(requester).getScore(), BarterKings.barterGame.getParticipant(requester).getScore()};
+        this.initialScores[0] = BarterKings.barterGame.getParticipant(requester).getScore();
+        this.initialScores[1] = BarterKings.barterGame.getParticipant(requested).getScore();
         this.setFailed(isFailed, reason);
 
     }
@@ -85,13 +110,26 @@ public class TradeRequest {
     public TradeRequest(Player requester, Player requested) {
         this.requester = requester;
         this.requested = requested;
+        requestedInventory = requested.getInventory().getContents().clone();
+        for (int i = 0; i < requestedInventory.length; i++) {
+            if (requestedInventory[i] != null) {
+                requestedInventory[i] = new ItemStack(requestedInventory[i].getType(), requestedInventory[i].getAmount());
+            }
+        }
+        requesterInventory = requester.getInventory().getContents().clone();
+        for (int i = 0; i < requesterInventory.length; i++) {
+            if (requesterInventory[i] != null) {
+                requesterInventory[i] = new ItemStack(requesterInventory[i].getType(), requesterInventory[i].getAmount());
+            }
+        }
         this.beginTimestamp = new Timestamp(System.currentTimeMillis());
         this.finishedTimestamp = new Timestamp(0);
         this.requestID = requester.getName() + requested.getName() + beginTimestamp.getTime();
         BarterPlus.inst().getLogger().log(Level.INFO, "New Trade via Menu: " + requestID + "| " + requester.getName() + "---> " + requested.getName());
         BarterKings.barterGame.getParticipant(requester).calculateTrueSilentScore();
         BarterKings.barterGame.getParticipant(requested).calculateTrueSilentScore();
-        this.initialScores = new int[]{BarterKings.barterGame.getParticipant(requester).getScore(), BarterKings.barterGame.getParticipant(requested).getScore()};
+        this.initialScores[0] = BarterKings.barterGame.getParticipant(requester).getScore();
+        this.initialScores[1] = BarterKings.barterGame.getParticipant(requested).getScore();
         this.createTradeMenu();
 
     }
@@ -241,8 +279,6 @@ public class TradeRequest {
             } else {
                 BarterPlus.inst().getLogger().log(Level.INFO, "Request: " + requestID + " failed");
             }
-            setRequestedInventory(requested.getInventory().getContents());
-            setRequesterInventory(requester.getInventory().getContents());
             this.finishedTimestamp = new Timestamp(System.currentTimeMillis());
             BarterKings.barterGame.getParticipant(requester).calculateTrueSilentScore();
             BarterKings.barterGame.getParticipant(requested).calculateTrueSilentScore();
@@ -259,9 +295,6 @@ public class TradeRequest {
         return beginTimestamp;
     }
 
-    public void setBeginTime(Timestamp timestamp) {
-        this.beginTimestamp = timestamp;
-    }
 
     public Timestamp getFinishTime() {
         return finishedTimestamp;
@@ -304,19 +337,50 @@ public class TradeRequest {
                 // Loop through requested items and give them to the requester
                 for (ItemStack item : trade.getRequestedItems()) {
                     requester.getInventory().addItem(item);
-                    // Remove the item from the requested player's inventory
-                    //requested.getInventory().removeItem(item);
                 }
                 // Loop through offered items and give them to the requested
                 for (ItemStack item : trade.getOfferedItems()) {
                     requested.getInventory().addItem(item);
-                    // Remove the item from the requester's inventory
-                    //requester.getInventory().removeItem(item);
                 }
                 this.setAccepted(true);
                 sendMessage(ChatColor.GOLD + "Trade completed!");
 
             // First check if the requested item is valid
+            } else if (trade.isMultiTrade()) {
+                boolean hasItems = true;
+
+                for (ItemStack item : trade.getRequestedItems()) {
+                    if (!requested.getInventory().containsAtLeast(item, item.getAmount())) {
+                        hasItems = false;
+                        sendMessage(ChatColor.DARK_RED + "The requested player does not have the offered item! Trade failed!");
+                        setFailed(true, "FAIL2 - Requested player (" + requested.getName() +") does not have the requested item: " + BarterGame.fm(item.getType()) + " x" + item.getAmount());
+                        break;
+                    }
+                }
+                for (ItemStack item : trade.getOfferedItems()) {
+                    if (!requester.getInventory().containsAtLeast(item, item.getAmount())) {
+                        hasItems = false;
+                        sendMessage(ChatColor.DARK_RED + "The requester does not have the requested item! Trade failed!");
+                        setFailed(true, "FAIL1 - Requester (" + requester.getName() +") does not have the offered item: " + BarterGame.fm(item.getType()) + " x" + item.getAmount());
+                        break;
+                    }
+                }
+                if (hasItems) {
+                    for (ItemStack item : trade.getRequestedItems()) {
+                        requested.getInventory().removeItem(new ItemStack(item.getType(), item.getAmount()));
+                        requester.getInventory().addItem(new ItemStack(item.getType(), item.getAmount()));
+                    }
+                    for (ItemStack item : trade.getOfferedItems()) {
+                        requester.getInventory().removeItem(new ItemStack(item.getType(), item.getAmount()));
+                        requested.getInventory().addItem(new ItemStack(item.getType(), item.getAmount()));
+                    }
+                    this.setAccepted(true);
+                    sendMessage(ChatColor.GOLD + "Trade completed!");
+                } else {
+                    sendMessage(ChatColor.DARK_RED + "One of the players does not have the required items! Trade failed!");
+                    setFailed(true, "FAIL5 - One of the players does not have the required items");
+                }
+
             } else if (trade.getRequestedItem() != null) {
                 // Then check if the offered item is valid
                 if (trade.getOfferedItem() != null) {
@@ -324,11 +388,11 @@ public class TradeRequest {
                     if (requested.getInventory().containsAtLeast(trade.getRequestedItem(), trade.getRequestedAmount())) {
                         // Then check if the requester has the offered item
                         if (requester.getInventory().containsAtLeast(trade.getOfferedItem(), trade.getOfferedAmount())) {
-                            this.setAccepted(true);
                             requested.getInventory().removeItem(new ItemStack(trade.getRequestedItem().getType(), trade.getRequestedAmount()));
                             requester.getInventory().removeItem(new ItemStack(trade.getOfferedItem().getType(), trade.getOfferedAmount()));
                             requested.getInventory().addItem(new ItemStack(trade.getOfferedItem().getType(), trade.getOfferedAmount()));
                             requester.getInventory().addItem(new ItemStack(trade.getRequestedItem().getType(), trade.getRequestedAmount()));
+                            this.setAccepted(true);
                             sendMessage(ChatColor.GOLD + "Trade completed!");
                         } else {
                             sendMessage(ChatColor.DARK_RED + "The requester does not have the requested item! Trade failed!");
@@ -415,7 +479,7 @@ public class TradeRequest {
     // Method that returns a  string representation of the trade request
     public String toString() {
         String str = requester.getName() + " requested a trade with " + requested.getName() + " at " + beginTimestamp.toString();
-        if (hasMenu()) {
+        if (hasMenu() || trade.isMultiTrade()) {
             // What the trade was for
             str += " Offering " + trade.getOfferedItemsString() + " for " + trade.getRequestedItemsString();
         } else {
@@ -427,7 +491,7 @@ public class TradeRequest {
 
     public String toPersonalString() {
         String str = "[REQUEST] " +requester.getName() + " requested a trade with you at " + beginTimestamp.toString();
-        if (hasMenu()) {
+        if (hasMenu() || trade.isMultiTrade()) {
             // What the trade was for
             str += " Offering " + trade.getOfferedItemsString() + " for " + trade.getRequestedItemsString();
         } else {
@@ -438,7 +502,7 @@ public class TradeRequest {
 
     public String toNPCString() {
         String str = "[REQUEST] " +requester.getName() + " requested a trade with you at " + beginTimestamp.toString();
-        if (hasMenu()) {
+        if (hasMenu() || trade.isMultiTrade()) {
             // What the trade was for
             str += " Offering " + trade.getOfferedItemsString() + " for " + trade.getRequestedItemsString();
         } else {
@@ -524,9 +588,6 @@ public class TradeRequest {
         return this.initialScores;
     }
 
-    public void setInitialScores(int[] initialScores) {
-        this.initialScores = initialScores;
-    }
 
     public int[] getFinalScores() {
         return this.finalScores;
@@ -541,15 +602,10 @@ public class TradeRequest {
         return requesterInventory;
     }
 
-    public void setRequesterInventory(ItemStack[] requesterInventory) {
-        this.requesterInventory = requesterInventory;
-    }
 
     public ItemStack[] getRequestedInventory() {
         return requestedInventory;
     }
 
-    public void setRequestedInventory(ItemStack[] requestedInventory) {
-        this.requestedInventory = requestedInventory;
-    }
+
 }

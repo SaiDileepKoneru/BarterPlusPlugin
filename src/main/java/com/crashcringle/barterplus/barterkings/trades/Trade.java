@@ -13,22 +13,25 @@ public class Trade {
     private int requestedAmount;
     private ItemStack offeredItem;
     private int offeredAmount;
+    private boolean multiTrade;
 
     private List<ItemStack> requestedItems = new ArrayList<ItemStack>();
     private List<ItemStack> offeredItems = new ArrayList<ItemStack>();
 
     public Trade(ItemStack offeredItem, int offeredAmount, ItemStack requestedItem, int requestedAmount) {
-        this.offeredItem = offeredItem;
+        this.offeredItem = new ItemStack(offeredItem.getType(), offeredAmount);
         this.offeredAmount = offeredAmount;
-        this.requestedItem = requestedItem;
+        this.requestedItem = new ItemStack(requestedItem.getType(), requestedAmount);
         this.requestedAmount = requestedAmount;
         requestedItems.add(new ItemStack(requestedItem.getType(), requestedAmount));
         offeredItems.add(new ItemStack(offeredItem.getType(), offeredAmount));
+        this.multiTrade = false;
     }
 
     public Trade(List<ItemStack> offeredItems, List<ItemStack> requestedItems) {
         this.requestedItems = requestedItems;
         this.offeredItems = offeredItems;
+        this.multiTrade = true;
     }
 
     public Trade(ItemStack offeredItemStack, int requestedAmount, ItemStack requestedItem) {
@@ -38,16 +41,18 @@ public class Trade {
         this.requestedAmount = requestedAmount;
         requestedItems.add(new ItemStack(requestedItem.getType(), requestedAmount));
         offeredItems.add(new ItemStack(offeredItem.getType(), offeredAmount));
+        this.multiTrade = false;
     }
 
     public Trade(ItemStack offeredItemStack, ItemStack requestedItem) {
-        this.offeredItem = offeredItemStack;
+        this.offeredItem = new ItemStack(offeredItemStack.getType(), offeredItemStack.getAmount());
         this.offeredAmount = offeredItemStack.getAmount();
-        this.requestedItem = requestedItem;
+        this.requestedItem = new ItemStack(requestedItem.getType(), requestedItem.getAmount());
         this.requestedAmount = requestedItem.getAmount();
 
         requestedItems.add(new ItemStack(requestedItem.getType(), requestedAmount));
         offeredItems.add(new ItemStack(offeredItem.getType(), offeredAmount));
+        this.multiTrade = false;
     }
 
     public ItemStack getRequestedItem() {
@@ -82,6 +87,10 @@ public class Trade {
         this.offeredAmount = offeredAmount;
     }
 
+    public boolean isMultiTrade() {
+        return multiTrade;
+    }
+
     public final static String fm( Material material ) {
         if ( material == null ) {
             return null;
@@ -97,9 +106,17 @@ public class Trade {
      * Returns a string representation of the trade
      * @return
      */
+//    public String getOfferString() {
+//        return requestedAmount + " " + ChatColor.YELLOW + requestedItem.getType().toString() + ChatColor.GREEN + " for " + offeredAmount + " " + offeredItem.getType().toString();
+//    }
+
     public String getOfferString() {
-        return requestedAmount + " " + ChatColor.YELLOW + requestedItem.getType().toString() + ChatColor.GREEN + " for " + offeredAmount + " " + offeredItem.getType().toString();
+//        if (requestedItems.size() > 1 && offeredItems.size() > 1)
+            return getRequestedItemsString() + " [for] " + getOfferedItemsString();
+//        else
+//            return requestedAmount + " " + ChatColor.YELLOW + requestedItem.getType().toString() + ChatColor.GREEN + " for " + offeredAmount + " " + offeredItem.getType().toString();
     }
+
 
     /**
      * Returns a string representation of the trade
@@ -151,7 +168,10 @@ public class Trade {
      * @return
      */
     public String getOfferedString() {
-        return offeredAmount + " " + ChatColor.YELLOW + offeredItem.getType().toString() + ChatColor.GREEN + " for " + requestedAmount + " " + requestedItem.getType().toString();
+        if (requestedItems.size() <= 1 && offeredItems.size() <= 1)
+            return offeredAmount + " " + ChatColor.YELLOW + offeredItem.getType().toString() + ChatColor.GREEN + " for " + requestedAmount + " " + requestedItem.getType().toString();
+        else
+            return getOfferedItemsString() + " [for] " + getRequestedItemsString();
     }
 
 

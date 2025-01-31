@@ -11,6 +11,7 @@ import com.cjcrafter.openai.threads.runs.Run;
 import com.crashcringle.barterplus.BarterPlus;
 import com.crashcringle.barterplus.barterkings.BarterKings;
 import com.crashcringle.barterplus.barterkings.ai.GPTService;
+import com.crashcringle.barterplus.barterkings.ai.GeminiChatMessage;
 import com.crashcringle.barterplus.barterkings.trades.TradeRequest;
 import lombok.Getter;
 import lombok.Setter;
@@ -32,6 +33,7 @@ public class NpcParticipant extends Participant {
     @Setter
     boolean isGenerating = false;
     boolean initialized = false;
+
     List<ChatMessage> globalMessages = new ArrayList<>();
 
     Thread thread;
@@ -72,6 +74,10 @@ public class NpcParticipant extends Participant {
             chatMessages.put(player, new ArrayList<>());
         }
         chatMessages.get(player).add(message);
+    }
+    public void addGlobalMessage(GeminiChatMessage message) {
+        ChatMessage chatMessage = ChatMessage.toUserMessage(message.getContent());
+        globalMessages.add(chatMessage);
     }
 
     public List<ChatMessage> getMessages(Player player) {
@@ -216,6 +222,7 @@ public class NpcParticipant extends Participant {
         String prompt = GPTService.generateSystemPrompt(this);
         globalMessages.add(ChatMessage.toSystemMessage(prompt));
     }
+
     public ChatRequest getRequest() {
     String model = BarterPlus.inst().model;
     ChatRequest request = ChatRequest.builder()
@@ -236,6 +243,11 @@ public class NpcParticipant extends Participant {
                     .noParameters()
                     .build()
             ).addTool(Function.builder()
+                    .name("send_chat")
+                    .description("Send a message to the chat for all players to see.")
+                    .addStringParameter("message", "The message to send.", true)
+                    .build()
+            ).addTool(Function.builder()
                     .name("check_inventory")
                     .description("Returns a list of items in your inventory.")
                     .noParameters()
@@ -248,6 +260,35 @@ public class NpcParticipant extends Participant {
                     .addIntegerParameter("offeredQty", "The quantity of the item you are offering.", true)
                     .addStringParameter("requestedItem", "The item you want to receive.", true)
                     .addIntegerParameter("requestedQty", "The quantity of the item you want to receive.", true)
+                    .build()
+            ).addTool(Function.builder()
+                    .name("multi_trade")
+                    .description("Propose a trade to the player involving multiple items. You can exchange up to 6 items for up to 6 items. You can only have a maximum of one active trade with each person at a time.")
+                    .addStringParameter("player", "The player you are trading with.", true)
+                    .addStringParameter("offeredItem1", "The first item you are offering", true)
+                    .addIntegerParameter("offeredQty1", "The quantity of the first item you are offering", true)
+                    .addStringParameter("offeredItem2", "The second item you are offering", false)
+                    .addIntegerParameter("offeredQty2", "The quantity of the second item you are offering", false)
+                    .addStringParameter("offeredItem3", "The third item you are offering", false)
+                    .addIntegerParameter("offeredQty3", "The quantity of the third item you are offering", false)
+                    .addStringParameter("offeredItem4", "The fourth item you are offering", false)
+                    .addIntegerParameter("offeredQty4", "The quantity of the fourth item you are offering", false)
+                    .addStringParameter("offeredItem5", "The fifth item you are offering", false)
+                    .addIntegerParameter("offeredQty5", "The quantity of the fifth item you are offering", false)
+                    .addStringParameter("offeredItem6", "The sixth item you are offering", false)
+                    .addIntegerParameter("offeredQty6", "The quantity of the sixth item you are offering", false)
+                    .addStringParameter("requestedItem1", "The first item you want to receive", true)
+                    .addIntegerParameter("requestedQty1", "The quantity of the first item you want to receive", true)
+                    .addStringParameter("requestedItem2", "The second item you want to receive", false)
+                    .addIntegerParameter("requestedQty2", "The quantity of the second item you want to receive", false)
+                    .addStringParameter("requestedItem3", "The third item you want to receive", false)
+                    .addIntegerParameter("requestedQty3", "The quantity of the third item you want to receive", false)
+                    .addStringParameter("requestedItem4", "The fourth item you want to receive", false)
+                    .addIntegerParameter("requestedQty4", "The quantity of the fourth item you want to receive", false)
+                    .addStringParameter("requestedItem5", "The fifth item you want to receive", false)
+                    .addIntegerParameter("requestedQty5", "The quantity of the fifth item you want to receive", false)
+                    .addStringParameter("requestedItem6", "The sixth item you want to receive", false)
+                    .addIntegerParameter("requestedQty6", "The quantity of the sixth item you want to receive", false)
                     .build()
             ).addTool(Function.builder()
                     .name("accept_trade")

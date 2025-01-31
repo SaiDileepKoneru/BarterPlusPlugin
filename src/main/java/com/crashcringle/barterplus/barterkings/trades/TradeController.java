@@ -333,16 +333,6 @@ public class TradeController {
             requests.add(tradeRequest);
             incomingRequests.put(tradeRequest.getRequested().getName().toUpperCase(), requests);
         }
-//        outgoingRequests.computeIfPresent(tradeRequest.getRequester(), (k, v) -> {
-//            v.add(tradeRequest);
-//            return v;
-//        });
-//        incomingRequests.computeIfPresent(tradeRequest.getRequested(), (k, v) -> {
-//            v.add(tradeRequest);
-//            return v;
-//        });
-//        outgoingRequests.computeIfAbsent(tradeRequest.getRequester(), k -> new ArrayList<>()).add(tradeRequest);
-//        incomingRequests.computeIfAbsent(tradeRequest.getRequested(), k -> new ArrayList<>()).add(tradeRequest);
 
 
     }
