@@ -467,6 +467,7 @@ public class GPTService {
             // If we get an exception try again 4 times every 10 seconds
             // Use Bukkit scheduler to run after a 10 second delay
             ChatResponse response2 = openai.createChatCompletion(request);
+//            npc.setInProgress(true);
             BarterPlus.inst().getLogger().info("Response: " + response2.toString());
             messages.add(response2.get(0).getMessage());
             try {
@@ -504,32 +505,37 @@ public class GPTService {
                     sayNothing = true;
                     madeToolCall = false;
                 }
-//                if (!sayNothing) {
-//                    ChatColor color = switch (npc.getProfession().getName()) {
-//                        case "Farmer" -> ChatColor.GREEN;
-//                        case "Fisherman" -> ChatColor.AQUA;
-//                        case "Mason" -> ChatColor.GRAY;
-//                        case "Shepherd" -> ChatColor.BLUE;
-//                        case "Blacksmith" -> ChatColor.DARK_GRAY;
-//                        case "Librarian" -> ChatColor.DARK_BLUE;
-//                        case "Butcher" -> ChatColor.RED;
-//                        case "Lumberjack" -> ChatColor.DARK_GREEN;
-//                        case "Leatherworker" -> ChatColor.GOLD;
-//                        default -> ChatColor.WHITE;
-//                    };
-//                    // Color the chat based on the professions
-//                    String chat = "<" + npcPlayer.getName() + "> " + color + messages.get(messages.size() - 1).getContent();
-//                    // Bukkit.broadcastMessage(chat);
-//                    String time = String.valueOf(System.currentTimeMillis());
-//                    String daMessage = "["+time+"] "+npcPlayer.getName() + ": " + messages.get(messages.size() - 1).getContent();
-//                    // Call AsyncPlayerChatEvent
-//                    Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), messages.get(messages.size() - 1).getContent().strip(), new HashSet<>(Bukkit.getOnlinePlayers())));
-//                    BarterPlus.inst().getLogger().info(chat);
-//
-//                    // Send to all players in the server
-//                    for (Player player : Bukkit.getOnlinePlayers()) {
-//                        player.sendMessage(chat);
-//                    }
+                if (!sayNothing) {
+                    ChatColor color = switch (npc.getProfession().getName()) {
+                        case "Farmer" -> ChatColor.GREEN;
+                        case "Fisherman" -> ChatColor.AQUA;
+                        case "Mason" -> ChatColor.GRAY;
+                        case "Shepherd" -> ChatColor.BLUE;
+                        case "Blacksmith" -> ChatColor.DARK_GRAY;
+                        case "Librarian" -> ChatColor.DARK_BLUE;
+                        case "Butcher" -> ChatColor.RED;
+                        case "Lumberjack" -> ChatColor.DARK_GREEN;
+                        case "Leatherworker" -> ChatColor.GOLD;
+                        default -> ChatColor.WHITE;
+                    };
+                    // Color the chat based on the professions
+                    String chat = "<" + npcPlayer.getName() + "> " + color + messages.get(messages.size() - 1).getContent();
+                    // Bukkit.broadcastMessage(chat);
+                    String time = String.valueOf(System.currentTimeMillis());
+                    String daMessage = "["+time+"] "+npcPlayer.getName() + ": " + messages.get(messages.size() - 1).getContent();
+                    // Call AsyncPlayerChatEvent
+                    Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), messages.get(messages.size() - 1).getContent().strip(), new HashSet<>(Bukkit.getOnlinePlayers())));
+                    BarterPlus.inst().getLogger().info(chat);
+
+                    // Send to all players in the server
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        player.sendMessage(chat);
+                    }
+                } else {
+                    BarterPlus.inst().getLogger().info("Saying nothing");
+                }
+            }
+
 //
                 }
             // Loop until we get a message without tool calls

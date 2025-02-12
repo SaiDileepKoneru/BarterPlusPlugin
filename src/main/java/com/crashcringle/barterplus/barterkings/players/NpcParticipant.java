@@ -32,6 +32,11 @@ public class NpcParticipant extends Participant {
     @Getter
     @Setter
     boolean isGenerating = false;
+
+    @Getter
+    @Setter
+    boolean isInProgress = false;
+
     boolean initialized = false;
 
     List<ChatMessage> globalMessages = new ArrayList<>();
@@ -104,20 +109,19 @@ public class NpcParticipant extends Participant {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                        isGenerating = true;
-   //                 try {
+                    isGenerating = true;
+                    isInProgress = false;
+                    try {
                         BarterKings.gptService.processChatGPTMessage(npcParticipant, ChatMessage.toUserMessage(chunkedMessage));
-//                    } catch (Exception e) {
-//                        // Lets let ChatGPT know it made a mistake so it can correct itself
-//                        BarterPlus.inst().getLogger().warning("ChatMessage: "+chunkedMessage);
-//                        String json = "{\"error\": \"" + e.getMessage() + "\"}";
-//                        BarterPlus.inst().getLogger().warning("Hallucination Error: " + e.getMessage());
-//
-//                        BarterPlus.inst().getLogger().warning("\n\n**Last Request: " + npcParticipant.getRequest().getMessages().get(npcParticipant.getRequest().getMessages().size()-1).getContent());
-//                        BarterKings.gptService.processChatGPTMessage(npcParticipant, ChatMessage.toSystemMessage(json));
-//
-//                    }
+                    } catch (Exception e) {
+                        // Lets let ChatGPT know it made a mistake so it can correct itself
+                        BarterPlus.inst().getLogger().warning("ChatMessage: "+chunkedMessage);
+                        String json = "{\"error\": \"" + e.getMessage() + "\"}";
+                        BarterPlus.inst().getLogger().warning("Hallucination Error: " + e.getMessage());
+                        BarterPlus.inst().getLogger().warning("\n\n**Last Request: " + npcParticipant.getRequest().getMessages().get(npcParticipant.getRequest().getMessages().size()-1).getContent());
+                        BarterKings.gptService.processChatGPTMessage(npcParticipant, ChatMessage.toSystemMessage(json));
 
+                    }
                     chunkedMessage = "";
                 }
             // Random between 1 and 6 seconds
@@ -130,8 +134,10 @@ public class NpcParticipant extends Participant {
 
             BarterPlus.inst().getLogger().warning("\n\n**Last Request: " + this.getRequest().getMessages().get(this.getRequest().getMessages().size()-1).getContent());
             BarterKings.gptService.processChatGPTMessage(npcParticipant, ChatMessage.toSystemMessage(json));
+            isGenerating = false;
         }
         BarterPlus.inst().globalBufferTime += 1;
+        BarterPlus.inst().getLogger().info("Global buffer time: "+BarterPlus.inst().globalBufferTime);
         // Check if a minute has passed since the current time
         if (System.currentTimeMillis() - BarterPlus.inst().lastTime > 60000) {
             BarterPlus.inst().globalBufferTime = 0;
@@ -241,11 +247,6 @@ public class NpcParticipant extends Participant {
                     .name("do_nothing")
                     .description("Do not send a response as you deem appropriate.")
                     .noParameters()
-                    .build()
-            ).addTool(Function.builder()
-                    .name("send_chat")
-                    .description("Send a message to the chat for all players to see.")
-                    .addStringParameter("message", "The message to send.", true)
                     .build()
             ).addTool(Function.builder()
                     .name("check_inventory")

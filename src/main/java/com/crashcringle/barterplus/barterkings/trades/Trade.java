@@ -168,9 +168,6 @@ public class Trade {
      * @return
      */
     public String getOfferedString() {
-        if (requestedItems.size() <= 1 && offeredItems.size() <= 1)
-            return offeredAmount + " " + ChatColor.YELLOW + offeredItem.getType().toString() + ChatColor.GREEN + " for " + requestedAmount + " " + requestedItem.getType().toString();
-        else
             return getOfferedItemsString() + " [for] " + getRequestedItemsString();
     }
 

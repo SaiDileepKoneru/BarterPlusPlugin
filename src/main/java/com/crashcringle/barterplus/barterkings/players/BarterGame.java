@@ -70,32 +70,32 @@ public class BarterGame {
             teleportPlayers();
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt begin 30m barterKings white &6&lBarter Plus! &e&l<minutes> &6minutes and &e&l<seconds> &6seconds left!");
             // Every 5 minutes, check if the game is in progress and if so, send a message to the chat of time remaining:
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (inprogress) {
-                        // Check if the game has been going on for more than 30 minutes
-                        if (id < (int) System.currentTimeMillis() - 1800000) {
-                            attemptEnd();
-                            // End the task
-                            cancel();
-                        } else {
-                            // Send chat message to all players of time remaining rounded to nearest minute
-                            int time = (int) Math.round((1800000 - ((int) System.currentTimeMillis() - id)) / 60000.0);
-                            String chat = ChatColor.GOLD + "" + ChatColor.BOLD + "The Barter Game has " + ChatColor.YELLOW + time + " minutes" + ChatColor.GOLD + " left!";
-                            // Get an NPC by the name of "Broadcast"
-                            NPC npc = CitizensAPI.getNPCRegistry().getById(5);
-                            Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, (Player) npc.getEntity(), chat.strip(), new HashSet<>(Bukkit.getOnlinePlayers())));
-                            BarterPlus.inst().getLogger().info(chat);
-                            // Send to all players in the server
-                            for (Player player : Bukkit.getOnlinePlayers()) {
-                                player.sendMessage(chat);
-                            }
-
-                        }
-                    }
-                }
-            }.runTaskTimerAsynchronously(BarterPlus.inst(), 0L, 6000L);
+//            new BukkitRunnable() {
+//                @Override
+//                public void run() {
+//                    if (inprogress) {
+//                        // Check if the game has been going on for more than 30 minutes
+//                        if (id < (int) System.currentTimeMillis() - 1800000) {
+//                            attemptEnd();
+//                            // End the task
+//                            cancel();
+//                        } else {
+//                            // Send chat message to all players of time remaining rounded to nearest minute
+//                            int time = (int) Math.round((1800000 - ((int) System.currentTimeMillis() - id)) / 60000.0);
+//                            String chat = ChatColor.GOLD + "" + ChatColor.BOLD + "The Barter Game has " + ChatColor.YELLOW + time + " minutes" + ChatColor.GOLD + " left!";
+//                            // Get an NPC by the name of "Broadcast"
+//                            NPC npc = CitizensAPI.getNPCRegistry().getById(5);
+//                            Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, (Player) npc.getEntity(), chat.strip(), new HashSet<>(Bukkit.getOnlinePlayers())));
+//                            BarterPlus.inst().getLogger().info(chat);
+//                            // Send to all players in the server
+//                            for (Player player : Bukkit.getOnlinePlayers()) {
+//                                player.sendMessage(chat);
+//                            }
+//
+//                        }
+//                    }
+//                }
+//            }.runTaskTimerAsynchronously(BarterPlus.inst(), 0L, 6000L);
         } else {
             Bukkit.broadcastMessage(ChatColor.YELLOW + "Not all players are ready!");
         }
