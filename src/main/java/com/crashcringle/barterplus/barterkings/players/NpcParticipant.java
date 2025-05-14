@@ -125,7 +125,7 @@ public class NpcParticipant extends Participant {
                     chunkedMessage = "";
                 }
             // Random between 1 and 6 seconds
-            }.runTaskLaterAsynchronously(BarterPlus.inst(), 20L * (BarterPlus.inst().globalBufferTime + (long) (Math.random() * 49)));
+            }.runTaskLaterAsynchronously(BarterPlus.inst(), Math.max(0, (BarterPlus.inst().globalBufferTime + (long) (Math.random() * 49))));
         } catch (Exception e) {
             // Lets let ChatGPT know it made a mistake so it can correct itself
             BarterPlus.inst().getLogger().warning("ChatMessage: "+chunkedMessage);
@@ -230,7 +230,7 @@ public class NpcParticipant extends Participant {
     }
 
     public ChatRequest getRequest() {
-    String model = BarterPlus.inst().model;
+    String model = BarterPlus.inst().gptModel;
     ChatRequest request = ChatRequest.builder()
             .user(this.name + "-" + BarterKings.barterGame.getId())
             .model(model)
@@ -245,7 +245,7 @@ public class NpcParticipant extends Participant {
                 .build()
             ).addTool(Function.builder()
                     .name("do_nothing")
-                    .description("Do not send a response as you deem appropriate.")
+                    .description("Do not send any chat, message, or response as you deem appropriate.")
                     .noParameters()
                     .build()
             ).addTool(Function.builder()

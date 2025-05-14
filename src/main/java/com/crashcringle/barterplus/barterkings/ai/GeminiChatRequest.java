@@ -1,5 +1,6 @@
 package com.crashcringle.barterplus.barterkings.ai;
 
+import com.crashcringle.barterplus.BarterPlus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -23,9 +24,9 @@ public class GeminiChatRequest {
         this.tools = objectMapper.createObjectNode();
 
         // Initialize default values
-        generationConfig.put("temperature", 1);
-        generationConfig.put("topK", 40);
-        generationConfig.put("topP", 0.95);
+        generationConfig.put("temperature", BarterPlus.inst().temperature);
+//        generationConfig.put("topK", 40);
+        generationConfig.put("topP", BarterPlus.inst().topP);
         generationConfig.put("maxOutputTokens", 3192);
         generationConfig.put("responseMimeType", "text/plain");
 

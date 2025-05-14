@@ -113,7 +113,7 @@ public class GeminiNPC extends NpcParticipant {
                     chunkedMessage = "";
                 }
                 // Random between 1 and 6 seconds
-            }.runTaskLaterAsynchronously(BarterPlus.inst(), 20L * (BarterPlus.inst().globalBufferTime + (long) (Math.random() * 49)));
+            }.runTaskLaterAsynchronously(BarterPlus.inst(), 20L * Math.max(0, (BarterPlus.inst().globalBufferTime + (long) (Math.random() * 49))));
         } catch (Exception e) {
             // Lets let ChatGPT know it made a mistake so it can correct itself
             BarterPlus.inst().getLogger().warning("ChatMessage: "+chunkedMessage);
@@ -124,6 +124,7 @@ public class GeminiNPC extends NpcParticipant {
             BarterKings.geminiService.processGeminiMessage(npcParticipant, new GeminiChatMessage("system", json));
         }
         BarterPlus.inst().globalBufferTime += 1;
+        BarterPlus.inst().getLogger().info("Global buffer time: "+BarterPlus.inst().globalBufferTime);
         // Check if a minute has passed since the current time
         if (System.currentTimeMillis() - BarterPlus.inst().lastTime > 60000) {
             BarterPlus.inst().globalBufferTime = 0;
@@ -190,40 +191,27 @@ public class GeminiNPC extends NpcParticipant {
     }
 
 
-//    public GeminiChatRequest getGeminiRequest() {
-//        // Construct the JSON payload dynamically
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        GeminiChatRequest builder = new GeminiChatRequest()
-//                .setModel("gemini-2.0-flash-exp")
-//                .setMessages(globalGeminiMessages)
-//                .addTool("check_desires", "Check the items that you need in your inventory to obtain to gain points.", null)
-//                .addTool("trade", "Propose a trade to the player.", createTradeParams(objectMapper))
-//                .setTemperature(1.0)
-//                .setTopP(0.95)
-//                .setTopK(40)
-//                .setMaxOutputTokens(3192);
-//        return builder;
-//    }
+
     public GeminiChatRequest getGeminiRequest() {
         // Construct the JSON payload dynamically
         ObjectMapper objectMapper = new ObjectMapper();
         GeminiChatRequest builder = new GeminiChatRequest()
-                .setModel("gemini-2.0-flash-exp")
+                .setModel(BarterPlus.inst().geminiModel)
                 .setMessages(globalGeminiMessages)
                 .addTool("check_desires", "Check the items that you need in your inventory to obtain to gain points.", null)
-                .addTool("do_nothing", "Do not send a response as you deem appropriate.", null)
+                .addTool("do_nothing", "Do not send any chat, message, or response as you deem appropriate.", null)
                 .addTool("check_inventory", "Returns a list of items in your inventory.", null)
-                .addTool("trade", "Propose a trade to the player. You can only have a maximum of one active trade with each person at a time.", createTradeParams(objectMapper))
+                .addTool("trade", "Propose a 1:1 trade to the player. You can only have a maximum of one active trade with each person at a time.", createTradeParams(objectMapper))
                 .addTool("multi_trade", "Propose a trade to the player involving multiple items. You can exchange up to 6 items for up to 6 items. You can only have a maximum of one active trade with each person at a time.", createMultiTradeParams(objectMapper))
                 .addTool("accept_trade", "Accept a trade request. This completes the trade and exchanges the items if successful.", createAcceptTradeParams(objectMapper))
-                .addTool("private_message", "Send a private message to a player. You can also reply to private messages with this", createPrivateMessageParams(objectMapper))
+                .addTool("private_message", "Send a private message to a player, Only the receiving player can see this message (Use a non-function call text for global messages). You can also reply to private messages with this", createPrivateMessageParams(objectMapper))
                 .addTool("decline_trade", "Decline a trade request. This completes the trade request by rejecting it.", createDeclineTradeParams(objectMapper))
                 .addTool("rescind_trade", "Rescind a trade request. This completes the trade request by rescinding it.", createRescindTradeParams(objectMapper))
                 .addTool("check_score", "Checks the value of all items in your inventory and returns your current score. Items worth 0 pts are worth nothing to you. Check your desires to see what items are worth points.", null)
                 .addTool("check_trades", "List trades you were involved in.", createCheckTradesParams(objectMapper))
-                .setTemperature(1.0)
-                .setTopP(0.95)
-                .setTopK(40)
+                .setTemperature(BarterPlus.inst().temperature)
+                .setTopP(BarterPlus.inst().topP)
+//                .setTopK(40)
                 .setMaxOutputTokens(3192);
 
         return builder;

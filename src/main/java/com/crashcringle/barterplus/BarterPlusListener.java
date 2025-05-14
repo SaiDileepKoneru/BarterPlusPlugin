@@ -6,8 +6,11 @@ import com.crashcringle.barterplus.barterkings.ai.NPCMessageEvent;
 import com.crashcringle.barterplus.barterkings.players.Participant;
 import com.crashcringle.barterplus.data.Database;
 import com.crashcringle.barterplus.barterkings.players.NpcParticipant;
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPC;
 import net.md_5.bungee.api.ChatColor;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,6 +18,7 @@ import org.bukkit.event.player.*;
 
 
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.logging.Level;
 public class BarterPlusListener implements Listener {
 
@@ -118,7 +122,7 @@ public class BarterPlusListener implements Listener {
 //        }
         if (!BarterKings.barterGame.inProgress()) {
             // Only process messages from kalyaniplays or CrashCringle12
-            if (!event.getPlayer().getName().equals("kalyaniplays") && !event.getPlayer().getName().equals("CrashCringle12")) {
+            if (!event.getPlayer().getName().equals("Broadcast") && !event.getPlayer().getName().equals("System") && !event.getPlayer().getName().equals("kalyaniplays") && !event.getPlayer().getName().equals("CrashCringle12")) {
                 BarterPlus.inst().getLogger().info("Player " + event.getPlayer().getName() + " tried to chat but the game is not in progress.");
                 return;
             }

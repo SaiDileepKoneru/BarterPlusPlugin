@@ -51,7 +51,11 @@ public class BarterGame {
 
     Participant winner;
     boolean inprogress = false;
+    private boolean askingQuestions = false;
     int id = 0;
+    public int endResponses;
+    int questionIndex = -1;
+    int questionAttempts = 0;
 
     public void setParticipants(List<Participant> participants) {
         BarterGame.participants = participants;
@@ -59,7 +63,7 @@ public class BarterGame {
 
     public void Checkup() {
         if (allReady()) {
-
+            BarterPlus.inst().globalBufferTime = 1;
             inprogress = true;
             id = (int) System.currentTimeMillis();
             Bukkit.broadcastMessage(ChatColor.YELLOW + "The Barter Game has begun!");
@@ -70,32 +74,39 @@ public class BarterGame {
             teleportPlayers();
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt begin 30m barterKings white &6&lBarter Plus! &e&l<minutes> &6minutes and &e&l<seconds> &6seconds left!");
             // Every 5 minutes, check if the game is in progress and if so, send a message to the chat of time remaining:
-//            new BukkitRunnable() {
-//                @Override
-//                public void run() {
-//                    if (inprogress) {
-//                        // Check if the game has been going on for more than 30 minutes
-//                        if (id < (int) System.currentTimeMillis() - 1800000) {
-//                            attemptEnd();
-//                            // End the task
-//                            cancel();
-//                        } else {
-//                            // Send chat message to all players of time remaining rounded to nearest minute
-//                            int time = (int) Math.round((1800000 - ((int) System.currentTimeMillis() - id)) / 60000.0);
-//                            String chat = ChatColor.GOLD + "" + ChatColor.BOLD + "The Barter Game has " + ChatColor.YELLOW + time + " minutes" + ChatColor.GOLD + " left!";
-//                            // Get an NPC by the name of "Broadcast"
-//                            NPC npc = CitizensAPI.getNPCRegistry().getById(5);
-//                            Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, (Player) npc.getEntity(), chat.strip(), new HashSet<>(Bukkit.getOnlinePlayers())));
-//                            BarterPlus.inst().getLogger().info(chat);
-//                            // Send to all players in the server
-//                            for (Player player : Bukkit.getOnlinePlayers()) {
-//                                player.sendMessage(chat);
-//                            }
-//
-//                        }
-//                    }
-//                }
-//            }.runTaskTimerAsynchronously(BarterPlus.inst(), 0L, 6000L);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (inprogress) {
+                        int time = (int) Math.round((1800000 - ((int) System.currentTimeMillis() - id)) / 60000.0);
+
+                        // Check if the game has been going on for more than 30 minutes
+                        if (time == 0) {
+                            attemptEnd();
+                            // End the task
+                            cancel();
+                        } else {
+                            // Send chat message to all players of time remaining rounded to nearest minute
+                            // Depending on the current scenario get the five-min-text like below
+//                            config.addDefault("cooperative-message-five-min-text", "Remember, all of you will win the bonus only if each one of you scores at least 120 points individually.");
+                            String scenario = BarterPlus.inst().currentScenario.toString().toLowerCase();
+                            String fiveMinText = BarterPlus.inst().getConfig().getString(scenario + "-message-five-min-text");
+                            String chat = ChatColor.GOLD + "" + ChatColor.BOLD + ChatColor.YELLOW + time + " minutes" + ChatColor.GOLD + " left in the session. " + fiveMinText ;
+                            // Get an NPC by the name of "Broadcast"
+                            NPC npc = CitizensAPI.getNPCRegistry().getById(5);
+                            Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, (Player) npc.getEntity(), chat.strip(), new HashSet<>(Bukkit.getOnlinePlayers())));
+                            BarterPlus.inst().getLogger().info(chat);
+                            // Send to all players in the server
+                            for (Player player : Bukkit.getOnlinePlayers()) {
+                                player.sendMessage(chat);
+                            }
+
+                        }
+                    } else {
+                        cancel();
+                    }
+                }
+            }.runTaskTimerAsynchronously(BarterPlus.inst(), 0L, 6000L);
         } else {
             Bukkit.broadcastMessage(ChatColor.YELLOW + "Not all players are ready!");
         }
@@ -108,12 +119,33 @@ public class BarterGame {
             Bukkit.broadcastMessage(ChatColor.YELLOW + "The Barter Game has begun!");
             setUpProfessions();
             setUpParticipants();
+            endResponses = 0;
             findAllActiveTierItems();
             distributeItems();
             teleportPlayers();
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt begin "+minutes+"m barterKings white &6&lBarter Kings! &e&l<minutes> &6minutes and &e&l<seconds> &6seconds left!");
         } else {
             Bukkit.broadcastMessage(ChatColor.YELLOW + "Not all players are ready!");
+        }
+    }
+
+    public static void clearParticipants() {
+        // Clear the participants list
+        if (participants != null) {
+            for (Participant participant : participants) {
+                // Clear any resources or references held by the participant if necessary
+                // For example, you might want to clear their inventory or reset their score
+                if (participant instanceof GeminiNPC) {
+                    GeminiNPC npc = (GeminiNPC) participant;
+                    npc.getGlobalMessages().clear();
+                    npc.chatMessages.clear();
+                } else if (participant instanceof NpcParticipant) {
+                    NpcParticipant npc = (NpcParticipant) participant;
+                    npc.getGlobalMessages().clear();
+                    npc.chatMessages.clear();
+                }
+            }
+            participants.clear();
         }
     }
 
@@ -248,7 +280,6 @@ public class BarterGame {
             Bukkit.broadcastMessage(ChatColor.GOLD + participant.getPlayer().getName() + " has increased their score by " + color + increase);
         }
 
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt end barterKings");
         for (Participant participant : getParticipants()) {
             try {
                 participant.getPlayer().getScoreboard().getObjective("Trading Goals").unregister();;
@@ -260,6 +291,7 @@ public class BarterGame {
         JSONObject data = new JSONObject();
         JSONArray barterGames = new JSONArray();
         JSONObject barterGame = new JSONObject();
+        barterGame.put("scenario", BarterPlus.inst().currentScenario.toString());
         barterGame.put("seed", BarterPlus.inst().seed);
         barterGame.put("model", BarterPlus.inst().model);
         barterGame.put("temperature", BarterPlus.inst().temperature);
@@ -318,8 +350,123 @@ public class BarterGame {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         inprogress = false;
+        setAskingQuestions(true);
+        String endText = "";
+        switch(BarterPlus.inst().currentScenario) {
+            case COMPETITIVE -> {
+                String winnerName = winner.getPlayer().getName();
+                boolean allTied = true;
+                // Check for ties with the winning player
+                for (Participant participant : getParticipants()) {
+                    if (participant.getScore() == winner.getScore() && !participant.equals(winner)) {
+                        winnerName += ", " + participant.getPlayer().getName();
+                    } else {
+                        allTied = false;
+                    }
+                }
+                if (allTied) {
+                    endText = BarterPlus.inst().getConfig().getString("competitive-message-tie-text");
+                } else {
+                    endText = String.format(BarterPlus.inst().getConfig().getString("competitive-message-winner-text"), winnerName);
+                }
+            }
+            case COOPERATIVE -> {
+                for (Participant participant : getParticipants()) {
+                    if (participant.getScore() < 120) {
+                        endText = BarterPlus.inst().getConfig().getString("cooperative-message-all-fail-text");
+                        break;
+                    }
+                }
+                if (endText.isEmpty()) {
+                    endText = BarterPlus.inst().getConfig().getString("cooperative-message-all-pass-text");
+                }
+            }
+            case BASELINE -> {
+                boolean allPass = true;
+                String winningPlayers = "";
+                for (Participant participant : getParticipants()) {
+                    if (participant.getScore() < 100) {
+                        allPass = false;
+                    } else {
+                        winningPlayers += participant.getPlayer().getName() + ", ";
+                    }
+                }
+                if (allPass) {
+                    endText = BarterPlus.inst().getConfig().getString("baseline-message-all-pass-text");
+                } else if (winningPlayers.isEmpty()) {
+                    endText = BarterPlus.inst().getConfig().getString("baseline-message-all-fail-text");
+                } else {
+                    endText = String.format(BarterPlus.inst().getConfig().getString("baseline-message-some-pass-text"), winningPlayers);
+                }
+            }
+        }
+        List<String> questions = new ArrayList<>();
+        questions.add(endText + ". Now, please answer the following questions based on your understanding of your session play:");
+        questions.add("What is your gender? Why do you think so?");
+        questions.add("What type of gaming scenario do you think you were in (competitive/cooperative/other)? Why?");
+        questions.add("What was your profession in the game?");
+        questions.add("How would you rate your proficiency in Minecraft (1- Novice, 2- Low, 3- Neutral, 4- Advanced, 5- Professional)? Why?");
+        questions.add("How easy was it to trade in the game (1- Easy, 2- Somewhat easy, 3- Neutral, 4- Somewhat hard, 5- Hard)? Why?");
+        questions.add("How easy was it to communicate with potential traders in the chat (1- Easy, 2- Somewhat easy, 3- Neutral, 4- Somewhat hard, 5- Hard)? Why?");
+        questions.add("How easy was it to understand the trading goals (1- Easy, 2- Somewhat easy, 3- Neutral, 4- Somewhat hard, 5- Hard)? Why?");
+        questions.add("How many other players/traders were there in your group?");
+        questions.add("Would you have preferred more or fewer traders? Why?");
+        questions.add("Was the duration of the game enough (1- Could be a lot shorter, 2- Could be a little shorter, 3- Neutral, 4- Could be a little longer, 5- Could be a lot longer)? Why?");
+        questions.add("Were the instructions of the game easy to understand (yes or no)? Why?");
+        questions.add("How would you rate your performance in the game (1- Extremely dissatisfied, 2- Dissatisfied, 3- Neutral, 4- Satisfied, 5- Extremely satisfied)? Why?");
+        questions.add("How would you rate your performance in the game (1- Extremely dissatisfied, 2- Dissatisfied, 3- Neutral, 4- Satisfied, 5- Extremely satisfied)? Why?");
+        questions.add("Is there anything you would do differently to improve your performance in the game?");
+        questions.add("Is there anything in the game you would like to change?");
+        questions.add("Are there any additional suggestions?");
+        endResponses = getParticipants().size();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                BarterPlus.inst().globalBufferTime = -49; // Set the global buffer time to 1 minute to allow for final questions and responses
+                // Ask game ending questions, check every 2 minutes if endResponses >= the number of participants, if so then proceed to next question
+                if (endResponses >= getParticipants().size()) {
+                    BarterPlus.inst().getLogger().info("All Responses Received #"+endResponses);
+                    // End the task
+                    endResponses = 0;
+                    questionIndex++;
+                    BarterPlus.inst().getLogger().info("Question Index: " + questionIndex);
+                    // If question index greater than number of questions, end this task
+                    if (questionIndex >= questions.size()) {
+                        BarterPlus.inst().getLogger().info("All questions asked, ending task");
+                        setAskingQuestions(false);
+                        cancel();
+                    } else {
+                        // Asking the next question
+                        BarterPlus.inst().getLogger().info("Asking Question #" + questionIndex);
+                        String chat = ChatColor.YELLOW + questions.get(questionIndex);
+                        // Get an NPC by the name of "Broadcast"
+                        NPC npc = CitizensAPI.getNPCRegistry().getById(5);
+                        Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, (Player) npc.getEntity(), chat.strip(), new HashSet<>(Bukkit.getOnlinePlayers())));
+                        BarterPlus.inst().getLogger().info(chat);
+                        // Send to all players in the server
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            player.sendMessage(chat);
+                        }
+                    }
+                } else {
+                    questionAttempts++;
+
+                    BarterPlus.inst().getLogger().info("["+questionAttempts+"/6] Not enough responses yet "+endResponses + " out of " + getParticipants().size());
+                    if (questionAttempts > 4) {
+                        endResponses = getParticipants().size();
+                        BarterPlus.inst().getLogger().info("Skipping question due to too many failed attempts {"+questionAttempts+"}");
+                        questionAttempts = 0;
+                    }
+                }
+            }
+            // 1min
+        }.runTaskTimerAsynchronously(BarterPlus.inst(), 0L, 200L);
+        try {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bbt end barterKings");
+        } catch (Exception e) {
+            BarterPlus.inst().getLogger().log(Level.WARNING, "Not ending the BBT Board");
+        }
 
     }
     
@@ -406,9 +553,16 @@ public class BarterGame {
     }
 
     public void setUpParticipants() {
+        int num = BarterPlus.inst().numberOfGeminiAgents;
+        BarterPlus.inst().getLogger().info("Number of Gemini Agents: " + num);
         for (NPC npc : CitizensAPI.getNPCRegistry()) {
             if (npc.hasTrait(BarterTrait.class)) {
-                participants.add(new GeminiNPC(npc));
+                if (num > 0) {
+                    participants.add(new GeminiNPC(npc));
+                    num--;
+                } else {
+                    participants.add(new NpcParticipant(npc));
+                }
                 // Clear their inventory
                 ((Player) npc.getEntity()).getInventory().clear();
             }
@@ -806,5 +960,13 @@ public class BarterGame {
 
     public void setLumberjack(Profession lumberjack) {
         Lumberjack = lumberjack;
+    }
+
+    public boolean isAskingQuestions() {
+        return askingQuestions;
+    }
+
+    public void setAskingQuestions(boolean askingQuestions) {
+        this.askingQuestions = askingQuestions;
     }
 }

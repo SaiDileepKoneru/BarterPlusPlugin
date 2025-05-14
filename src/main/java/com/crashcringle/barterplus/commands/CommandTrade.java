@@ -448,6 +448,24 @@ public class CommandTrade implements CommandExecutor {
                     }
                     return true;
                 }
+                else if (args[0].equalsIgnoreCase("autorun")) {
+                    if (sender.hasPermission("barterplus.autorun")) {
+                        if (args.length == 1) {
+                            if (BarterKings.barterGame.inProgress()) {
+                                sender.sendMessage(ChatColor.RED + "A game is already in progress, please restart server and run this at the beginning.");
+                                return false;
+                            }
+                            BarterKings.startGamesService();
+                            return true;
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "Usage: /barter autorun");
+                            return false;
+                        }
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "You do not have permission to use this command");
+                        return false;
+                    }
+                }
             else {
                     sender.sendMessage(ChatColor.RED + "Invalid command");
                     return false;

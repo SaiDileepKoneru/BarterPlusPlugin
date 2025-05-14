@@ -44,17 +44,15 @@ public class GPTService {
     OpenAI openai;
     @Getter
     Assistant assistant;
-    BarterGame game;
     TradeController controller;
 
 
-    public GPTService(BarterGame game, TradeController controller) {
-        key = "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";
+    public GPTService( TradeController controller) {
+        key = BarterPlus.inst().gptKey;
         openai = OpenAI.builder()
                 .apiKey(key)
                 .build();
 //        assistant = openai.assistants().retrieve("asst_SdbFT7Znc78YldySYVWweJYL");
-        this.game = game;
         this.controller = controller;
 
         // Check config for "openai-model" if not found use "gpt-3.5-turbo"
@@ -197,6 +195,7 @@ public class GPTService {
                         requesti.sendAMessage("Trade failed: " + requesti.getFailedReason());
                         return new ChatMessage(ChatUser.TOOL, "Trade failed: " + requesti.getFailedReason(), null, call.getId());
                     }
+                    Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), "[*][ACCEPTED][accept_trade -> "+ acceptPlayer + "] " + requesti.toString(), new HashSet<>(Bukkit.getOnlinePlayers())));
                     return new ChatMessage(ChatUser.TOOL, "Successful: Trade accepted with " + acceptPlayer, null, call.getId());
                 case "decline_trade":
                     // If there are no arguments, decline the most recent trade
@@ -218,6 +217,7 @@ public class GPTService {
                     TradeRequest requesto = TradeController.denyTrade(npcPlayer.getName().toUpperCase(), declinePlayer.toUpperCase());
                     if (requesto == null)
                         throw new HallucinationException("No trade request found with " + declinePlayer.toUpperCase());
+                    Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), "[*][DECLINED][decline_trade -> "+ declinePlayer + "] " + requesto.toString(), new HashSet<>(Bukkit.getOnlinePlayers())));
                     return new ChatMessage(ChatUser.TOOL, "Successful: Trade declined from " + declinePlayer, null, call.getId());
                 case "rescind_trade":
                     // If there are no arguments, cancel the most recent trade
@@ -239,6 +239,7 @@ public class GPTService {
                     TradeRequest requesta = TradeController.cancelTrade(npcPlayer.getName(), cancelPlayer);
                     if (requesta == null)
                         throw new HallucinationException("No outgoing trade request found to " + cancelPlayer);
+                    Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), "[*][RESCINDED][rescind_trade -> "+ cancelPlayer + "] " + requesta.toString(), new HashSet<>(Bukkit.getOnlinePlayers())));
                     return new ChatMessage(ChatUser.TOOL, "Trade rescinded from " + cancelPlayer, null, call.getId());
                 case "check_trades":
                     // List all the trades
@@ -429,18 +430,6 @@ public class GPTService {
                 npc.getName() + " Tokens: " + tokens + " Messages: " + npc.getGlobalMessages().size()
         );
 
-//        if (tokens > 1900) {
-//            // Keep removing the second message until the tokens are less than 1800
-//            while (tokens > 1800) {
-//                BarterPlus.inst().getLogger().info("Removing message: " + npc.getGlobalMessages().get(1).getContent());
-//                List<ChatMessage> newGlobalMessages = new ArrayList<>(npc.getGlobalMessages());
-//                newGlobalMessages.remove(2);
-//                npc.setGlobalMessages(newGlobalMessages);
-//                tokens = npc.getGlobalMessages().stream()
-//                        .mapToInt(m -> Optional.ofNullable(m.getContent()).map(content -> content.length() / 4).orElse(0))
-//                        .sum();
-//            }
-//        }
 
         List<ChatMessage> messages = npc.getGlobalMessages();
         ChatRequest request = npc.getRequest();
@@ -454,41 +443,20 @@ public class GPTService {
         do {
             BarterPlus.inst().getLogger().info("Generating Response for " + npc.getPlayer().getName() + "...");
             madeToolCall = false;
-//            for (ChatResponseChunk chunk : openai.streamChatCompletion(request)) {
-//                String delta = chunk.get(0).getDeltaContent();
-//                if (delta != null) {
-//                }
-//
-//                // When the response is finished, we can add it to the messages list.
-//                if (chunk.get(0).isFinished())
-//                    messages.add(chunk.get(0).getMessage());
-//            }
-            //ChatResponse response2 = openai.createChatCompletion(request);
+
             // If we get an exception try again 4 times every 10 seconds
             // Use Bukkit scheduler to run after a 10 second delay
             ChatResponse response2 = openai.createChatCompletion(request);
 //            npc.setInProgress(true);
             BarterPlus.inst().getLogger().info("Response: " + response2.toString());
             messages.add(response2.get(0).getMessage());
-            try {
-                Files.createDirectories(Paths.get(BarterPlus.inst().getDataFolder().getPath() +"/requests/Game"+BarterKings.barterGame.getId()));
-                File file = new File(BarterPlus.inst().getDataFolder().getPath() +"/requests/Game"+BarterKings.barterGame.getId() + "/request-" + request.getUser() + ".json");
-                // Write the contents of the request to the file
-                FileWriter writer = new FileWriter(file);
-                writer.write("********************\n"+request.toString() + "\n\n");
-                writer.write(messages.get(messages.size() - 1).getContent() == null ? "null" : messages.get(messages.size() - 1).getContent());
-                writer.write("-********************\n");
-                writer.write(response2.get(0).getMessage().toString());
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
             // Get a random item out the npcs inventory to trade
             Player npcPlayer = npc.getPlayer();
 
             // If the API returned a tool call to us, we need to handle it.
             List<ToolCall> toolCalls = messages.get(messages.size() - 1).getToolCalls();
-           // BarterPlus.inst().getLogger().info("Response: " + messages.get(messages.size() - 1) + "\n\n");
+           BarterPlus.inst().getLogger().info("Response: " + messages.get(messages.size() - 1) + "\n\n");
 
             if (toolCalls != null) {
                 madeToolCall = true;
@@ -535,9 +503,6 @@ public class GPTService {
                     BarterPlus.inst().getLogger().info("Saying nothing");
                 }
             }
-
-//
-                }
             // Loop until we get a message without tool calls
         } while (madeToolCall);
         npc.setGenerating(false);
@@ -577,7 +542,9 @@ public class GPTService {
         String weather = player.getWorld().hasStorm() ? "Rainy" : "Sunny";
         String biome = player.getLocation().getBlock().getBiome().name();
         String time = player.getWorld().getTime() < 12300 ? "Day" : "Night";
-        File file = new File(BarterPlus.inst().getDataFolder(), "prompt.txt");
+        File file = new File(BarterPlus.inst().getDataFolder(), BarterPlus.inst().currentScenario.name().toLowerCase() + "-prompt.txt");
+        BarterPlus.inst().getLogger().info("Using Prompt File: " + file.getAbsolutePath());
+
         String prompt = "";
         if (!file.exists()) {
             BarterPlus.inst().getLogger().warning("prompt.txt file not found");

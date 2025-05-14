@@ -35,18 +35,18 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 
 public class GeminiService {
 
-    BarterGame game;
     TradeController controller;
 
-    private static final String GEMINI_API_KEY = "AIzaSyB7ZbzXqMUrigYArNVlonSxqCAvdWrIucU";
+    private static String geminiKey;
 
 
-    public GeminiService(BarterGame game, TradeController controller) {
-        this.game = game;
+    public GeminiService(TradeController controller) {
         this.controller = controller;
+        geminiKey = BarterPlus.inst().geminiKey;
     }
 
     // Send Request Method
@@ -55,19 +55,20 @@ public class GeminiService {
             // Construct the JSON payload dynamically
             ObjectMapper objectMapper = new ObjectMapper();
             ObjectNode request = builder.build();
-            System.out.println("Request: " + request);
+//            System.out.println("Request: " + request);
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(new URI("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=" + GEMINI_API_KEY))
+                    .uri(new URI("https://generativelanguage.googleapis.com/v1beta/models/" + BarterPlus.inst().geminiModel + ":generateContent?key=" + geminiKey))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(request)))
                     .build();
             HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             ObjectNode responseJson = (ObjectNode) objectMapper.readTree(response.body());
-            System.out.println("Response Code: " + response.statusCode());
-            System.out.println("Response Body: " + response.body());
+            BarterPlus.inst().getLogger().log(Level.INFO,"Response Code: " + response.statusCode());
+            BarterPlus.inst().getLogger().log(Level.INFO,"Response Body: " + response.body());
             return responseJson;
         } catch (Exception e) {
+            BarterPlus.inst().getLogger().log(Level.WARNING, "Failed to send request to Gemini API: " + builder.toString());
             e.printStackTrace();
         }
         return null;
@@ -88,9 +89,11 @@ public class GeminiService {
         GeminiChatRequest request = npc.getGeminiRequest();
         npc.setGenerating(true);
         boolean madeToolCall;
-        boolean sayNothing = false;
+
         do {
-            BarterPlus.inst().getLogger().info("Processing Gemini message: " + message.getContent());
+            boolean sayNothing = true;
+            boolean hasTextMessage = false;
+            //BarterPlus.inst().getLogger().info("Processing Gemini message: " + message.getContent());
             madeToolCall = false;
             ObjectNode responseJson = sendRequest(request);
             ArrayNode candidates = (ArrayNode) responseJson.get("candidates");
@@ -99,9 +102,14 @@ public class GeminiService {
             List<JsonNode> toolCalls = new ArrayList<>();
             String text = "";
             if (candidates == null) {
-                BarterPlus.inst().getLogger().warning("No candidates found");
+                BarterPlus.inst().getLogger().warning("No candidates found for:\n" +
+                        "Request: " + request.build().toString() + "\n" +
+                        "Response: " + responseJson.toString());
+                messages.add(new GeminiChatMessage("tool", "Error: No candidates found in the response.", null, null));
+                npc.setGenerating(false);
                 return messages;
             }
+
             for (JsonNode candidate : candidates) {
                 JsonNode content = candidate.get("content");
                 if (content != null && content.has("parts")) {
@@ -111,6 +119,9 @@ public class GeminiService {
                             toolCalls.add(part.get("functionCall"));
                         } else if (part.has("text") || sayNothing) {
                             text = part.get("text").asText();
+                            // Remove all \n characters from the text
+                            text = text.replace("\n", "");
+                            hasTextMessage = !text.isEmpty();
                             System.out.println("Model message: " + text);
                         }
                     }
@@ -118,26 +129,40 @@ public class GeminiService {
             }
             GeminiChatMessage responseMessage = new GeminiChatMessage("model", text, toolCalls, null);
             messages.add(responseMessage);
-            for (JsonNode toolCall : toolCalls) {
-                ObjectNode functionCall = (ObjectNode) toolCall;
-                System.out.println("Function call: " + functionCall);
-                if (functionCall.has("name")) {
-                    if (functionCall.get("name").asText().equals("do_nothing")) {
-                        sayNothing = true;
-                    } else {
-                        madeToolCall = true;
+            if (toolCalls != null && !toolCalls.isEmpty()) {
+                for (JsonNode toolCall : toolCalls) {
+                    ObjectNode functionCall = (ObjectNode) toolCall;
+                    System.out.println("Function call: " + functionCall);
+                    if (functionCall.has("name")) {
+
                         GeminiChatMessage response = handleToolCall(npc, functionCall);
-                        if (response.getContent().contains("do_nothing") || response.getContent().contains("[Saying Nothing]")  || response.getContent().contains("private_message") ) {
+                        if (response.getContent().contains("do_nothing") || response.getContent().contains("[Saying Nothing]") || response.getContent().contains("private_message")) {
                             sayNothing = true;
+                            madeToolCall = false;
+                        }
+                        if (response.getContent().contains("Hallucination Error:") && !madeToolCall) {
+                            madeToolCall = false;
+                        } else {
+                            madeToolCall = true;
                         }
                         messages.add(response);
                     }
                 }
+                if (!BarterKings.barterGame.inProgress() && !hasTextMessage) {
+                    break;
+                }
+            }
+            if (hasTextMessage) {
+                BarterPlus.inst().getLogger().info("Has text message: " + text);
+                BarterPlus.inst().getLogger().info("Response Message: " + responseMessage.getContent());
+                if (!responseMessage.getContent().contains("do_nothing()")) {
+                    sayNothing = false;
+                }
+            }
+            if ((messages.get(messages.size() - 1).getContent().contains("do_nothing") || messages.get(messages.size() - 1).getContent() == null || messages.get(messages.size() - 1).getContent().isEmpty() || messages.get(messages.size() - 1).getContent().isBlank())) {
+                madeToolCall = false;
             }
 
-            if (messages.get(messages.size() - 1).getContent().contains("do_nothing") || messages.get(messages.size() - 1).getContent() == null || messages.get(messages.size() - 1).getContent().isEmpty() || messages.get(messages.size() - 1).getContent().isBlank()) {
-                sayNothing = true;
-            }
             if (!sayNothing) {
                 ChatColor color = switch (npc.getProfession().getName()) {
                     case "Farmer" -> ChatColor.GREEN;
@@ -152,124 +177,114 @@ public class GeminiService {
                     default -> ChatColor.WHITE;
                 };
                 // Color the chat based on the professions
-                String chat = "<" + npcPlayer.getName() + "> " + color + messages.get(messages.size() - 1).getContent();
+                String chat = "<" + npcPlayer.getName() + "> " + color + responseMessage.getContent();
                 // Bukkit.broadcastMessage(chat);
                 String time = String.valueOf(System.currentTimeMillis());
-                String daMessage = "["+time+"] "+npcPlayer.getName() + ": " + messages.get(messages.size() - 1).getContent();
+                String daMessage = "["+time+"] "+npcPlayer.getName() + ": " + responseMessage.getContent();
                 // Call AsyncPlayerChatEvent
-                Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), messages.get(messages.size() - 1).getContent().strip(), new HashSet<>(Bukkit.getOnlinePlayers())));
+                Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), responseMessage.getContent().strip(), new HashSet<>(Bukkit.getOnlinePlayers())));
                 BarterPlus.inst().getLogger().info(chat);
 
                 // Send to all players in the server
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     player.sendMessage(chat);
                 }
+            } else {
+                BarterPlus.inst().getLogger().info("Saying nothing");
+            }
 
-//                    for (Participant participant : BarterKings.barterGame.getParticipants()) {
-//                        if (participant instanceof NpcParticipant) {
-//                            NpcParticipant npcParticipant = (NpcParticipant) participant;
-//                            if (npc != npcParticipant) {
-//                                if (npcParticipant.isGenerating()) {
-//                                    npcParticipant.chunkMessage(daMessage);
-//                                } else {
-//                                    npcParticipant.processMessage(daMessage);
-//                                }
+        } while (madeToolCall);
+        BarterKings.barterGame.endResponses++;
+        BarterPlus.inst().getLogger().info("End responses: " + BarterKings.barterGame.endResponses);
+        npc.setGenerating(false);
+        return messages;
+    }
+
+//    public List<GeminiChatMessage> processChatGPTMessage(GeminiNPC npc, ChatMessage message) {
+//        // Every 4 chars is 1 token, print how many tokens exist in the global messages list by checking how many characters are in each individual message
+//        // If total there are greater than 1000 tokens, remove the first message in the list.
+//        int tokens = npc.getGlobalMessages().stream()
+//                .mapToInt(m -> Optional.ofNullable(m.getContent()).map(content -> content.length() / 4).orElse(0))
+//                .sum();
+//        BarterPlus.inst().getLogger().info(
+//                npc.getName() + " Tokens: " + tokens + " Messages: " + npc.getGlobalMessages().size()
+//        );
+//        List<GeminiChatMessage> messages = npc.getGlobalGeminiMessages();
+//        // Add the message to the global messages list
+//        npc.addGlobalMessage(message);
+//        GeminiChatRequest request = npc.getGeminiRequest();
+//        BarterPlus.inst().getLogger().info("Processing Gemini message: " + message.getContent());
+//        npc.setGenerating(true);
+//        boolean madeToolCall;
+//        boolean sayNothing = false;
+//        do {
+//            madeToolCall = false;
+//            ObjectNode responseJson = sendRequest(request);
+//            ArrayNode candidates = (ArrayNode) responseJson.get("candidates");
+//
+//            Player npcPlayer = npc.getPlayer();
+//
+//            for (JsonNode candidate : candidates) {
+//                JsonNode content = candidate.get("content");
+//                if (content != null && content.has("parts")) {
+//                    ArrayNode partsArray = (ArrayNode) content.get("parts");
+//                    for (JsonNode part : partsArray) {
+//                        if (part.has("functionCall")) {
+//                            ObjectNode functionCall = (ObjectNode) part.get("functionCall");
+//                            System.out.println("Function call: " + functionCall);
+//                            if (functionCall.has("name") && functionCall.get("name").asText().equals("do_nothing")) {
+//                                sayNothing = true;
+//                            } else {
+//                                madeToolCall = true;
+//                                handleToolCall(npc, functionCall);
+//                                sayNothing = true;
 //                            }
+//                        } else if (part.has("text") || sayNothing) {
+//                            GeminiChatMessage txt = new GeminiChatMessage("model", part.get("text").asText(), null, null);
+//                            System.out.println("Model message: " + txt.getContent());
 //                        }
 //                    }
-            } else {
-                BarterPlus.inst().getLogger().info("Saying nothing");
-            }
-
-        } while (madeToolCall);
-        npc.setGenerating(false);
-        return messages;
-    }
-
-    public List<GeminiChatMessage> processChatGPTMessage(GeminiNPC npc, ChatMessage message) {
-        // Every 4 chars is 1 token, print how many tokens exist in the global messages list by checking how many characters are in each individual message
-        // If total there are greater than 1000 tokens, remove the first message in the list.
-        int tokens = npc.getGlobalMessages().stream()
-                .mapToInt(m -> Optional.ofNullable(m.getContent()).map(content -> content.length() / 4).orElse(0))
-                .sum();
-        BarterPlus.inst().getLogger().info(
-                npc.getName() + " Tokens: " + tokens + " Messages: " + npc.getGlobalMessages().size()
-        );
-        List<GeminiChatMessage> messages = npc.getGlobalGeminiMessages();
-        // Add the message to the global messages list
-        npc.addGlobalMessage(message);
-        GeminiChatRequest request = npc.getGeminiRequest();
-        BarterPlus.inst().getLogger().info("Processing Gemini message: " + message.getContent());
-        npc.setGenerating(true);
-        boolean madeToolCall;
-        boolean sayNothing = false;
-        do {
-            madeToolCall = false;
-            ObjectNode responseJson = sendRequest(request);
-            ArrayNode candidates = (ArrayNode) responseJson.get("candidates");
-
-            Player npcPlayer = npc.getPlayer();
-
-            for (JsonNode candidate : candidates) {
-                JsonNode content = candidate.get("content");
-                if (content != null && content.has("parts")) {
-                    ArrayNode partsArray = (ArrayNode) content.get("parts");
-                    for (JsonNode part : partsArray) {
-                        if (part.has("functionCall")) {
-                            ObjectNode functionCall = (ObjectNode) part.get("functionCall");
-                            System.out.println("Function call: " + functionCall);
-                            if (functionCall.has("name") && functionCall.get("name").asText().equals("do_nothing")) {
-                                sayNothing = true;
-                            } else {
-                                madeToolCall = true;
-                                handleToolCall(npc, functionCall);
-                                sayNothing = true;
-                            }
-                        } else if (part.has("text") || sayNothing) {
-                            GeminiChatMessage txt = new GeminiChatMessage("model", part.get("text").asText(), null, null);
-                            System.out.println("Model message: " + txt.getContent());
-                        }
-                    }
-                }
-            }
-            if (messages.get(messages.size() - 1).getContent().contains("do_nothing") || messages.get(messages.size() - 1).getContent() == null || messages.get(messages.size() - 1).getContent().isEmpty() || messages.get(messages.size() - 1).getContent().isBlank()) {
-                sayNothing = true;
-            }
-            if (!sayNothing) {
-                ChatColor color = switch (npc.getProfession().getName()) {
-                    case "Farmer" -> ChatColor.GREEN;
-                    case "Fisherman" -> ChatColor.AQUA;
-                    case "Mason" -> ChatColor.GRAY;
-                    case "Shepherd" -> ChatColor.BLUE;
-                    case "Blacksmith" -> ChatColor.DARK_GRAY;
-                    case "Librarian" -> ChatColor.DARK_BLUE;
-                    case "Butcher" -> ChatColor.RED;
-                    case "Lumberjack" -> ChatColor.DARK_GREEN;
-                    case "Leatherworker" -> ChatColor.GOLD;
-                    default -> ChatColor.WHITE;
-                };
-                // Color the chat based on the professions
-                String chat = "<" + npcPlayer.getName() + "> " + color + messages.get(messages.size() - 1).getContent();
-                // Bukkit.broadcastMessage(chat);
-                String time = String.valueOf(System.currentTimeMillis());
-                String daMessage = "["+time+"] "+npcPlayer.getName() + ": " + messages.get(messages.size() - 1).getContent();
-                // Call AsyncPlayerChatEvent
-                Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), messages.get(messages.size() - 1).getContent().strip(), new HashSet<>(Bukkit.getOnlinePlayers())));
-                BarterPlus.inst().getLogger().info(chat);
-
-                // Send to all players in the server
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    player.sendMessage(chat);
-                }
-
-            } else {
-                BarterPlus.inst().getLogger().info("Saying nothing");
-            }
-
-        } while (madeToolCall);
-        npc.setGenerating(false);
-        return messages;
-    }
+//                }
+//            }
+//            if (messages.get(messages.size() - 1).getContent().contains("do_nothing") || messages.get(messages.size() - 1).getContent() == null || messages.get(messages.size() - 1).getContent().isEmpty() || messages.get(messages.size() - 1).getContent().isBlank()) {
+//                sayNothing = true;
+//                madeToolCall = false;
+//            }
+//            if (!sayNothing) {
+//                ChatColor color = switch (npc.getProfession().getName()) {
+//                    case "Farmer" -> ChatColor.GREEN;
+//                    case "Fisherman" -> ChatColor.AQUA;
+//                    case "Mason" -> ChatColor.GRAY;
+//                    case "Shepherd" -> ChatColor.BLUE;
+//                    case "Blacksmith" -> ChatColor.DARK_GRAY;
+//                    case "Librarian" -> ChatColor.DARK_BLUE;
+//                    case "Butcher" -> ChatColor.RED;
+//                    case "Lumberjack" -> ChatColor.DARK_GREEN;
+//                    case "Leatherworker" -> ChatColor.GOLD;
+//                    default -> ChatColor.WHITE;
+//                };
+//                // Color the chat based on the professions
+//                String chat = "<" + npcPlayer.getName() + "> " + color + messages.get(messages.size() - 1).getContent();
+//                // Bukkit.broadcastMessage(chat);
+//                String time = String.valueOf(System.currentTimeMillis());
+//                String daMessage = "["+time+"] "+npcPlayer.getName() + ": " + messages.get(messages.size() - 1).getContent();
+//                // Call AsyncPlayerChatEvent
+//                Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), messages.get(messages.size() - 1).getContent().strip(), new HashSet<>(Bukkit.getOnlinePlayers())));
+//                BarterPlus.inst().getLogger().info(chat);
+//
+//                // Send to all players in the server
+//                for (Player player : Bukkit.getOnlinePlayers()) {
+//                    player.sendMessage(chat);
+//                }
+//
+//            } else {
+//                BarterPlus.inst().getLogger().info("Saying nothing");
+//            }
+//
+//        } while (madeToolCall);
+//        npc.setGenerating(false);
+//        return messages;
+//    }
 
 
     private static ObjectNode createTradeParams(ObjectMapper objectMapper) {
@@ -298,7 +313,8 @@ public class GeminiService {
         String weather = player.getWorld().hasStorm() ? "Rainy" : "Sunny";
         String biome = player.getLocation().getBlock().getBiome().name();
         String time = player.getWorld().getTime() < 12300 ? "Day" : "Night";
-        File file = new File(BarterPlus.inst().getDataFolder(), "prompt.txt");
+        File file = new File(BarterPlus.inst().getDataFolder(), BarterPlus.inst().currentScenario.name().toLowerCase() + "-prompt.txt");
+        BarterPlus.inst().getLogger().info("Using Prompt File: " + file.getAbsolutePath());
         String prompt = "";
         if (!file.exists()) {
             BarterPlus.inst().getLogger().warning("prompt.txt file not found");
@@ -364,12 +380,21 @@ public class GeminiService {
         JsonNode arguments = functionCall.get("args");
         String callId = functionName;
         Player npcPlayer = npc.getPlayer();
-
+        if (!BarterKings.barterGame.inProgress()) {
+            return new GeminiChatMessage("tool", "The Game is Over, no more tool calls.", null, callId);
+        }
         try {
             switch (functionName) {
                 case "do_nothing":
                     BarterPlus.inst().getLogger().info("Doing nothing for " + npcPlayer.getName());
                     return new GeminiChatMessage("tool", "do_nothing", null, callId);
+                case "check_score":
+                    // Get the score of the npc
+                    BarterPlus.inst().getLogger().info("Checking score for " + npcPlayer.getName());
+                    // Get the score of the player
+                    String scoreBreakdown = npc.getScoreBreakdown();
+                    BarterPlus.inst().getLogger().info("Score Breakdown: " + scoreBreakdown);
+                    return new GeminiChatMessage("tool", scoreBreakdown, null, callId);
                 case "check_inventory":
                     BarterPlus.inst().getLogger().info("Querying inventory for " + npcPlayer.getName());
                     StringBuilder inventory = new StringBuilder("");
@@ -383,13 +408,15 @@ public class GeminiService {
                     return new GeminiChatMessage("tool", inventory.toString(), null, callId);
                 case "trade":
                     // Get the trade arguments
-                    arguments.get("");
                     String player = arguments.get("player").asText();
                     // Check if the player is in the game
                     if (BarterKings.barterGame.getParticipant(player) == null) {
                         throw new HallucinationException("Player not found: " + player);
                     }
-
+                    if (arguments.get("offeredItem") == null || arguments.get("requestedItem") == null ||
+                            arguments.get("offeredQty") == null || arguments.get("requestedQty") == null) {
+                        throw new HallucinationException("Missing arguments for 1:1 trade");
+                    }
                     String offeredItem = arguments.get("offeredItem").asText();
                     int offeredQty = arguments.get("offeredQty").asInt();
                     String requestedItem = arguments.get("requestedItem").asText();
@@ -506,6 +533,7 @@ public class GeminiService {
 //                        return new ChatMessage(ChatUser.TOOL, "Trade failed: " + requesti.getFailedReason(), null, call.getId());
                         return new GeminiChatMessage("tool", "Trade failed: " + requesti.getFailedReason(), null, callId);
                     }
+                    Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), "[*][ACCEPTED][trade -> "+ acceptPlayer + "] " + requesti.toString(), new HashSet<>(Bukkit.getOnlinePlayers())));
 //                    return new ChatMessage(ChatUser.TOOL, "Successful: Trade accepted with " + acceptPlayer, null, call.getId());
                     return new GeminiChatMessage("tool", "Successful: Trade accepted with " + acceptPlayer, null, callId);
                 case "decline_trade":
@@ -530,6 +558,7 @@ public class GeminiService {
                     if (requesto == null)
                         throw new HallucinationException("No trade request found with " + declinePlayer.toUpperCase());
                     //return new ChatMessage(ChatUser.TOOL, "Successful: Trade declined from " + declinePlayer, null, call.getId());
+                    Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), "[*][DECLINED][trade -> "+ declinePlayer + "] " + requesto.toString(), new HashSet<>(Bukkit.getOnlinePlayers())));
                     return new GeminiChatMessage("tool", "Successful: Trade declined from " + declinePlayer, null, callId);
                 case "rescind_trade":
                     // If there are no arguments, cancel the most recent trade
@@ -553,6 +582,7 @@ public class GeminiService {
                     if (requesta == null)
                         throw new HallucinationException("No outgoing trade request found to " + cancelPlayer);
 //                    return new ChatMessage(ChatUser.TOOL, "Trade rescinded from " + cancelPlayer, null, call.getId());
+                    Bukkit.getPluginManager().callEvent(new org.bukkit.event.player.AsyncPlayerChatEvent(true, npc.getPlayer(), "[*][RESCINDED][trade -> "+ cancelPlayer + "] " + requesta.toString(), new HashSet<>(Bukkit.getOnlinePlayers())));
                     return new GeminiChatMessage("tool", "Trade rescinded from " + cancelPlayer, null, callId);
                 case "check_trades":
                     // List all the trades
