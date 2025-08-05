@@ -1,0 +1,55 @@
+tier1Farmer.add(new ItemStack(Material.POTATO));
+tier1Farmer.add(new ItemStack(Material.CARROT));
+tier1Farmer.add(new ItemStack(Material.WHEAT));
+tier2Farmer.add(new ItemStack(Material.BREAD));
+tier2Farmer.add(new ItemStack(Material.PUMPKIN));
+tier3Farmer.add(new ItemStack(Material.MUSHROOM_STEW));
+
+tier1Fisher.add(new ItemStack(Material.COD));
+tier1Fisher.add(new ItemStack(Material.SALMON));
+tier1Fisher.add(new ItemStack(Material.TROPICAL_FISH));
+tier2Fisher.add(new ItemStack(Material.PUFFERFISH));
+tier2Fisher.add(new ItemStack(Material.TURTLE_EGG));
+tier3Fisher.add(new ItemStack(Material.OAK_BOAT));
+
+tier1Butcher.add(new ItemStack(Material.BEEF));
+tier1Butcher.add(new ItemStack(Material.CHICKEN));
+tier1Butcher.add(new ItemStack(Material.PORKCHOP));
+tier2Butcher.add(new ItemStack(Material.COOKED_BEEF));
+tier2Butcher.add(new ItemStack(Material.COOKED_PORKCHOP));
+tier3Butcher.add(new ItemStack(Material.RABBIT_STEW));
+
+tier1Blacksmith.add(new ItemStack(Material.IRON_INGOT));
+tier1Blacksmith.add(new ItemStack(Material.GOLD_INGOT));
+tier1Blacksmith.add(new ItemStack(Material.COAL));
+tier2Blacksmith.add(new ItemStack(Material.FLETCHING_TABLE));
+tier2Blacksmith.add(new ItemStack(Material.SMITHING_TABLE));
+tier3Blacksmith.add(new ItemStack(Material.DIAMOND_SWORD));
+
+tier1Leatherworker.add(new ItemStack(Material.LEATHER));
+tier1Leatherworker.add(new ItemStack(Material.STICK));
+tier1Leatherworker.add(new ItemStack(Material.LEAD));
+tier2Leatherworker.add(new ItemStack(Material.COW_SPAWN_EGG));
+tier2Leatherworker.add(new ItemStack(Material.RABBIT_HIDE));
+tier3Leatherworker.add(new ItemStack(Material.SADDLE));
+
+tier1Mason.add(new ItemStack(Material.STONE));
+tier1Mason.add(new ItemStack(Material.QUARTZ_BLOCK));
+tier1Mason.add(new ItemStack(Material.GLASS));
+tier2Mason.add(new ItemStack(Material.RED_GLAZED_TERRACOTTA));
+tier2Mason.add(new ItemStack(Material.BLUE_GLAZED_TERRACOTTA));
+tier3Mason.add(new ItemStack(Material.STONE_PICKAXE));
+
+tier1Shepherd.add(new ItemStack(Material.STRING));
+tier1Shepherd.add(new ItemStack(Material.WHITE_WOOL));
+tier1Shepherd.add(new ItemStack(Material.BLUE_DYE));
+tier2Shepherd.add(new ItemStack(Material.SHEEP_SPAWN_EGG));
+tier2Shepherd.add(new ItemStack(Material.LOOM));
+tier3Shepherd.add(new ItemStack(Material.SHEARS));
+
+tier1Lumberjack.add(new ItemStack(Material.OAK_LOG));
+tier1Lumberjack.add(new ItemStack(Material.SPRUCE_LOG));
+tier1Lumberjack.add(new ItemStack(Material.BIRCH_LOG));
+tier2Lumberjack.add(new ItemStack(Material.SPRUCE_PLANKS));
+tier2Lumberjack.add(new ItemStack(Material.OAK_PLANKS));
+tier3Lumberjack.add(new ItemStack(Material.DIAMOND_AXE));
